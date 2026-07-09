@@ -237,8 +237,8 @@ export const CONFIG = {
 
   // --- Audio (procedural WebAudio — see src/audio.js) -------------------------
   AUDIO_MASTER: 0.85,     // master gain (0 = the M mute toggle)
-  AUDIO_MUSIC: 0.5,       // generative score bus
-  AUDIO_SFX: 0.9,         // action sounds bus
+  AUDIO_MUSIC: 0.15,      // generative score bus
+  AUDIO_SFX: 0.05,        // action sounds bus
 
   // --- Gamepad (standard mapping — see src/gamepad.js) ------------------------
   PAD_MOVE_ON: 0.45,      // left-stick threshold that starts holding a direction
