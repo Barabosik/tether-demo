@@ -1,0 +1,203 @@
+{
+  "id": "i01-the-threshold",
+  "order": 13,
+  "worldId": 3,
+  "name": "THE THRESHOLD",
+  "tag": "infernal dash · streams · scorched stone",
+  "tint": "#ff5a3d",
+  "par": 85,
+  "sRankTime": 55,
+  "track": "music/w3-inferno.mp3",
+  "music": {
+    "root": -24,
+    "scale": [
+      0,
+      1,
+      3,
+      5,
+      7,
+      8,
+      10
+    ],
+    "bpm": 104,
+    "pad": "sawtooth",
+    "prog": [
+      0,
+      3,
+      4,
+      5
+    ],
+    "density": 0.36,
+    "hats": false,
+    "drive": true
+  },
+  "world": {
+    "w": 3800,
+    "h": 1600
+  },
+  "spawn": {
+    "x": 160,
+    "y": 1064
+  },
+  "goal": {
+    "x": 3600,
+    "y": 890,
+    "w": 110,
+    "h": 110
+  },
+  "solids": [
+    {
+      "x": 0,
+      "y": 1400,
+      "w": 3800,
+      "h": 200
+    },
+    {
+      "x": 0,
+      "y": 1230,
+      "w": 34,
+      "h": 170
+    },
+    {
+      "x": 3766,
+      "y": 1230,
+      "w": 34,
+      "h": 170
+    },
+    {
+      "x": 0,
+      "y": 1100,
+      "w": 1560,
+      "h": 300
+    },
+    {
+      "x": 1560,
+      "y": 1100,
+      "w": 700,
+      "h": 300
+    },
+    {
+      "x": 1560,
+      "y": 760,
+      "w": 700,
+      "h": 40
+    },
+    {
+      "kind": "scorch",
+      "x": 1860,
+      "y": 800,
+      "w": 26,
+      "h": 300
+    },
+    {
+      "x": 3000,
+      "y": 1060,
+      "w": 800,
+      "h": 340
+    },
+    {
+      "x": 3560,
+      "y": 1000,
+      "w": 190,
+      "h": 60
+    },
+    {
+      "x": 2870,
+      "y": 1240,
+      "w": 130,
+      "h": 160
+    }
+  ],
+  "spikes": [
+    {
+      "x": 2400,
+      "y": 1340,
+      "w": 400,
+      "h": 60,
+      "pin": 1
+    }
+  ],
+  "anchors": [
+    {
+      "x": 2620,
+      "y": 790
+    }
+  ],
+  "nodes": [],
+  "enemies": [],
+  "hazards": [
+    {
+      "kind": "laser",
+      "x": 1150,
+      "y": 700,
+      "w": 26,
+      "h": 400
+    },
+    {
+      "kind": "laser",
+      "x": 3340,
+      "y": 660,
+      "w": 26,
+      "h": 400
+    }
+  ],
+  "hints": [
+    {
+      "x": 830,
+      "y": 1000,
+      "text": "the stream BURNS — only the INFERNAL DASH passes",
+      "big": 1
+    },
+    {
+      "x": 1690,
+      "y": 1020,
+      "text": "scorched stone SHATTERS — dash THROUGH it",
+      "big": 1
+    },
+    {
+      "x": 2500,
+      "y": 960,
+      "text": "swing the basin, then dash the last stream",
+      "big": 0
+    }
+  ],
+  "coins": [
+    {
+      "x": 1150,
+      "y": 620
+    },
+    {
+      "x": 2100,
+      "y": 1040
+    },
+    {
+      "x": 3350,
+      "y": 590
+    }
+  ],
+  "decor": [
+    {
+      "type": "column",
+      "x": 500,
+      "y": 1100,
+      "s": 1.2,
+      "fg": 0
+    },
+    {
+      "type": "chain",
+      "x": 2620,
+      "y": 500,
+      "s": 1.1,
+      "fg": 0
+    },
+    {
+      "type": "column",
+      "x": 3200,
+      "y": 1060,
+      "s": 1.3,
+      "fg": 0
+    }
+  ],
+  "props": [],
+  "triggers": []
+}

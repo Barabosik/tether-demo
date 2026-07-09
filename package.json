@@ -1,0 +1,22 @@
+{
+  "name": "tether",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Grapple-swing precision platformer in a single HTML file",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "standalone": "node tools/build-standalone.mjs",
+    "levels": "node tools/gen-manifest.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.61.1",
+    "vite": "^7.1.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.0"
+  }
+}

@@ -1,0 +1,14 @@
+# dependencies + build tooling output
+node_modules/
+dist/
+
+# generated artifacts: screenshots, profiling output, scratch builds
+build/
+
+# local editor/OS state
+*.code-workspace
+.DS_Store
+
+# NOTE: TETHER.html (the playable single-file build) IS committed — it's the
+# deliverable. Regenerate with `npm run standalone`.
+.env

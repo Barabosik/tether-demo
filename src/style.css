@@ -1,0 +1,1126 @@
+html, body {
+  margin: 0;
+  background: #0b0812;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+#wrap {
+  position: relative; /* positioning context for the #ui-root artboard */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* DOM overlay artboard (created in uiRoot.js): a VIEW_W×VIEW_H surface
+ * pinned to the canvas center and scaled as ONE unit — children are authored
+ * in artboard px, the same numbers as canvas VIEW coordinates. fitCanvas()
+ * sets --ui-scale from the same rounding as the canvas CSS size.
+ * transform-origin stays at the default 50% 50%: translate(-50%,-50%) pins
+ * the artboard center to the wrap center and scale() grows it symmetrically,
+ * which is exactly how the flex-centered canvas letterboxes.
+ * pointer-events:none — gameplay mouse falls through to the canvas (which
+ * keeps cursor:none); interactive DOM chrome opts back in below and gets a
+ * real CSS cursor. */
+#ui-root {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--ui-scale, 1));
+  pointer-events: none;
+}
+#ui-root button {
+  pointer-events: auto;
+  cursor: pointer;
+}
+/* roving focus draws its own .focused ring — the UA default ring would
+ * double-outline every focused card/chip */
+#ui-root button:focus { outline: none; }
+#game {
+  max-width: 100%;
+  cursor: none;
+  /* the canvas fills the window now — no card chrome around it */
+}
+#legend { display: none; } /* controls live in SETTINGS + README now */
+#legend .hl { color: #ffb454; }
+#wrap:fullscreen {
+  background: #07050c;
+  gap: 0;
+}
+#wrap:fullscreen #legend { display: none; }
+/* fullscreen: the canvas keeps its fixed backing store; only its CSS size
+ * grows (aspect-correct, set by fitCanvas). Drop windowed chrome so the
+ * upscaled bitmap meets the letterbox with a clean edge. */
+#wrap:fullscreen #game {
+  border-radius: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+/* account chip + dropdown — inside #wrap so fullscreen keeps them.
+ * (#wrap is what toggleFullscreen() fullscreens; a fullscreened element is
+ * the containing block for its fixed-position descendants, so these keep
+ * their corner in BOTH modes.) */
+#auth-chip {
+  position: fixed;
+  top: 10px;
+  right: 12px;
+  z-index: 51;
+  background: rgba(20, 14, 26, 0.92);
+  border: 1px solid #2b1e30;
+  border-radius: 8px;
+  color: #cbb8d6;
+  font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+#auth-chip:hover { background: #241831; border-color: #4a3555; }
+#auth-chip.authed { color: #a0ffa0; }
+#auth-panel {
+  position: fixed;
+  top: 42px;
+  right: 12px;
+  z-index: 50;
+  width: 180px;
+  background: rgba(20, 14, 26, 0.96);
+  border: 1px solid #2b1e30;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 12px;
+  color: #cbb8d6;
+  display: none;
+}
+#auth-panel.open { display: block; }
+#auth-panel .auth-status {
+  display: none;
+  color: #a0ffa0;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+#auth-panel .auth-error {
+  display: none;
+  color: #ff6b6b;
+  margin-bottom: 6px;
+}
+#auth-panel .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#auth-panel input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px 6px;
+  background: #17101d;
+  border: 1px solid #2b1e30;
+  border-radius: 6px;
+  color: #eee;
+  font: inherit;
+}
+#auth-panel button {
+  width: 100%;
+  padding: 5px 6px;
+  background: #2b1e30;
+  border: 1px solid #3d2c46;
+  border-radius: 6px;
+  color: #ffb454;
+  font: inherit;
+  cursor: pointer;
+}
+#auth-panel button:hover { background: #3d2c46; }
+#auth-panel > button {
+  display: none;
+  margin-bottom: 8px;
+}
+#auth-panel .auth-toggle {
+  background: transparent;
+  border: none;
+  color: #8d7a9e;
+  font-size: 11px;
+  text-decoration: underline;
+  padding: 2px 0;
+}
+#auth-panel .auth-toggle:hover { background: transparent; color: #cbb8d6; }
+
+/* leaderboard/achievements trophy button — top-left artboard corner, inside
+ * #ui-root (artboard px; scales with the canvas). The select screen's header
+ * is centered and its world-nav flanks the center, so this corner is clear. */
+#lb-open-btn {
+  position: absolute;
+  left: 20px;
+  top: 18px;
+  z-index: 50;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  background: rgba(20, 14, 26, 0.85);
+  border: 1px solid rgba(140, 110, 160, 0.4);
+  border-radius: 8px;
+  color: #ffb454;
+  font-size: 16px;
+  line-height: 1;
+}
+#lb-open-btn:hover {
+  background: rgba(255, 180, 84, 0.2);
+  border-color: #ffb454;
+}
+
+/* leaderboard/achievements modal */
+#lb-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(7, 5, 12, 0.72);
+  align-items: center;
+  justify-content: center;
+}
+#lb-modal {
+  width: min(420px, 92vw);
+  max-height: min(560px, 84vh);
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 14, 26, 0.97);
+  border: 1px solid #2b1e30;
+  border-radius: 12px;
+  box-shadow: 0 0 60px rgba(255, 150, 80, 0.12);
+  overflow: hidden;
+}
+.lb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10px 0 14px;
+  border-bottom: 1px solid #2b1e30;
+}
+.lb-tabs { display: flex; gap: 6px; }
+.lb-tabs button {
+  padding: 7px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #8d7a9e;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.lb-tabs button.active { color: #ffb454; border-bottom-color: #ffb454; }
+.lb-tabs button:hover { color: #cbb8d6; }
+.lb-close {
+  background: transparent;
+  border: none;
+  color: #8d7a9e;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 10px;
+}
+.lb-close:hover { color: #ff6b6b; }
+.lb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 10px 14px 14px;
+  font-size: 12px;
+  color: #cbb8d6;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #3d2c46 #17101d;
+}
+.lb-body::-webkit-scrollbar { width: 8px; }
+.lb-body::-webkit-scrollbar-track { background: #17101d; }
+.lb-body::-webkit-scrollbar-thumb { background: #3d2c46; border-radius: 4px; }
+.lb-body::-webkit-scrollbar-thumb:hover { background: #ffb454; }
+.lb-section-title {
+  color: #ffb454;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.lb-empty {
+  color: #6e5f7a;
+  text-align: center;
+  padding: 30px 0;
+}
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(140, 110, 160, 0.15);
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-rank { color: #6e5f7a; width: 20px; flex-shrink: 0; }
+.lb-name { flex: 1; color: #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-time { color: #ffd166; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.lb-time-none { color: #5a4a66; }
+/* rank chip in the Best Times list — matches the results-screen grade colors */
+.lb-grade {
+  width: 18px; flex-shrink: 0; text-align: center;
+  font-weight: bold; font-size: 12px;
+}
+.lb-grade-S { color: #ffd166; }
+.lb-grade-A { color: #8cf2ff; }
+.lb-grade-B { color: #a0ffa0; }
+.lb-grade-C { color: #c9b8d8; }
+.lb-grade-none { color: #4a3a56; }
+.lb-foot {
+  color: #8d7a9e;
+  text-align: center;
+  padding: 12px 0 2px;
+  font-size: 11px;
+}
+
+.lb-pagination {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 8px 14px 12px;
+  border-top: 1px solid #2b1e30;
+}
+.lb-page-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(140, 110, 160, 0.4);
+  border-radius: 6px;
+  color: #ffb454;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.lb-page-btn:hover:not(:disabled) { background: rgba(255, 180, 84, 0.2); border-color: #ffb454; }
+.lb-page-btn:disabled { opacity: 0.35; cursor: default; }
+.lb-page-label { color: #8d7a9e; font-size: 12px; min-width: 90px; text-align: center; }
+
+/* admin gear button — top-left cluster, just right of the trophy (artboard
+ * px, inside #ui-root); only shown to the hardcoded admin account. Its old
+ * home (x = W/2+254, the trophy's former flank) sat on top of the
+ * canvas-drawn LINE chip (W/2+214…276) whenever a world had 2+ levels. */
+#admin-open-btn {
+  position: absolute;
+  left: 62px;
+  top: 20px;
+  z-index: 50;
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(140, 110, 160, 0.4);
+  border-radius: 6px;
+  color: #ffb454;
+  font-size: 14px;
+  line-height: 1;
+}
+#admin-open-btn:hover {
+  background: rgba(255, 180, 84, 0.2);
+  border-color: #ffb454;
+}
+
+/* admin modal */
+#admin-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(7, 5, 12, 0.72);
+  align-items: center;
+  justify-content: center;
+}
+#admin-modal {
+  width: min(420px, 92vw);
+  max-height: min(560px, 84vh);
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 14, 26, 0.97);
+  border: 1px solid #2b1e30;
+  border-radius: 12px;
+  box-shadow: 0 0 60px rgba(255, 150, 80, 0.12);
+  overflow: hidden;
+}
+.admin-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-upload-title { margin-top: 10px; }
+.admin-action-btn {
+  padding: 8px 10px;
+  background: #2b1e30;
+  border: 1px solid #3d2c46;
+  border-radius: 6px;
+  color: #ffb454;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.admin-action-btn:hover { background: #3d2c46; }
+.admin-name-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 8px;
+  background: #17101d;
+  border: 1px solid #2b1e30;
+  border-radius: 6px;
+  color: #eee;
+  font: inherit;
+  font-size: 12px;
+}
+.admin-file-input { color: #8d7a9e; font-size: 12px; }
+.admin-json-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px;
+  background: #17101d;
+  border: 1px solid #2b1e30;
+  border-radius: 6px;
+  color: #eee;
+  font: inherit;
+  font-size: 11px;
+  resize: vertical;
+}
+.admin-status { min-height: 16px; font-size: 12px; color: #8d7a9e; }
+.admin-status-ok { color: #a0ffa0; }
+.admin-status-error { color: #ff6b6b; }
+/* PR8 — the online-levels manage list */
+.admin-level-list {
+  max-height: 190px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #8d7a9e;
+}
+.admin-level-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #17101d;
+  border: 1px solid #2b1e30;
+  border-radius: 6px;
+}
+.admin-level-name {
+  color: #eee;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-level-meta { font-size: 11px; white-space: nowrap; }
+.admin-level-override { color: #ffd166; }
+.admin-del-btn {
+  background: #2b1e30;
+  border: 1px solid #3d2c46;
+  border-radius: 5px;
+  color: #ff6b6b;
+  font: inherit;
+  font-size: 11px;
+  padding: 2px 7px;
+  cursor: pointer;
+}
+.admin-del-btn:hover { background: #3d2c46; }
+.admin-del-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ============================================================ DOM screens
+ * Phase 1 of the Canvas→DOM UI conversion: the level-select screen. Authored
+ * on the #ui-root artboard in VIEW-space px (the same numbers drawSelect
+ * used), so canvas HUD lanes and DOM UI still share one coordinate system.
+ *
+ * Design-token seed — a later Claude Design pass restyles by swapping these,
+ * not by touching selectScreen.js. Kept scoped to the screens so they don't
+ * leak into the existing widget CSS above. */
+.screen, .screen * { box-sizing: border-box; } /* fixed boxes — focus styles must never reflow the grid */
+.screen {
+  --sel-accent: #ffb454;
+  --sel-accent-soft: rgba(255, 180, 84, 0.4);
+  --sel-pink: #ff4fa0;
+  --sel-cyan: #8CF2FF;
+  --sel-ink: #e8dcf2;
+  --sel-ink-dim: #c9b8d8;
+  --sel-muted: #8d7a9e;
+  --sel-gold: #ffd166;
+  --sel-card: #181022;
+  --sel-card-sel: #241a30;
+  --sel-card-flip: #1d0f1a;
+  --sel-line: rgba(140, 110, 160, 0.4);
+  --sel-radius: 10px;
+  --sel-font: ui-monospace, Menlo, monospace;
+}
+
+/* each screen fills the artboard; pointer-events:auto gives the whole surface
+ * a real cursor (the canvas keeps cursor:none for gameplay) */
+#screen-select {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: default;
+  font-family: var(--sel-font);
+  user-select: none;
+}
+
+/* ---- header: title, world subtitle, world-nav row ---- */
+.sel-head {
+  position: absolute;
+  top: 30px;
+  left: 0; right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sel-title {
+  font-size: 44px;
+  font-weight: bold;
+  color: var(--sel-accent);
+  text-shadow: 0 0 26px var(--sel-accent);
+  letter-spacing: 1px;
+}
+.sel-subtitle {
+  font-size: 13px;
+  color: var(--sel-muted);
+  margin-top: 6px;
+  /* world names must clear the nav chips flanking the header — cap the
+     line and ellipsize only as the absolute last resort */
+  max-width: 44%;
+  margin-inline: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sel-subtitle.long { /* long world names step down instead of cramping */
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.sel-worldnav {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  right: 0;
+  height: 26px;
+}
+.sel-chip {
+  position: absolute; /* left/width set per-chip in buildWorldNav (canvas offsets) */
+  top: 0;
+  height: 26px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--sel-line);
+  border-radius: 6px;
+  color: var(--sel-ink-dim);
+  font: bold 16px var(--sel-font);
+  line-height: 1;
+}
+.sel-worldnew { font-size: 16px; }
+.sel-line { font-size: 12px; border-color: rgba(140, 242, 255, 0.4); }
+.sel-chip.focused, .sel-chip:hover { background: rgba(255, 180, 84, 0.2); border-color: var(--sel-accent); color: #ffe9c9; }
+.sel-line.focused, .sel-line:hover { background: rgba(140, 242, 255, 0.2); border-color: var(--sel-cyan); color: #dcf8ff; }
+
+/* ---- grid ---- */
+.sel-grid {
+  position: absolute;
+  top: 189px;
+  left: 0; right: 0;
+  margin: 0 auto; /* with max-width (set in buildGrid) → centered 4-wide rows */
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 18px; /* overridden per-world in buildGrid (scales with k) */
+  --cw: 196px;
+  --ch: 172px;
+  --k: 1;
+}
+.sel-grid.sel-grid-top { top: 118px; }
+.sel-empty { color: rgba(200, 170, 220, 0.7); font-size: 14px; margin-top: 80px; }
+
+.sel-card {
+  position: relative;
+  width: var(--cw);
+  height: var(--ch);
+  padding: 0;
+  background: var(--sel-card);
+  /* constant width — focus swaps COLOR only, so the box (and the pinned
+   * corner chips) never move a pixel under the cursor */
+  border: 2px solid var(--sel-line);
+  border-radius: var(--sel-radius);
+  text-align: left;
+}
+/* the BODY lifts on focus; the card's hit geometry and its corner chips stay
+ * pinned — the canvas "hitbox dance" fix, kept (chips never move under the
+ * cursor; ROADMAP checklist A) */
+.sel-cardbody {
+  position: absolute;
+  inset: 0;
+  padding: calc(6px * var(--k));
+  border-radius: var(--sel-radius);
+  overflow: hidden;
+  transition: transform 0.08s ease;
+  pointer-events: none; /* hits belong to the card button + chips */
+}
+.sel-card.flipped { background: var(--sel-card-flip); border-color: rgba(255, 79, 160, 0.45); }
+.sel-card.focused {
+  background: var(--sel-card-sel);
+  border-color: var(--tint, var(--sel-accent));
+  box-shadow: 0 0 16px var(--tint, var(--sel-accent));
+}
+.sel-card.focused .sel-cardbody { transform: translateY(-6px); }
+.sel-card.flipped.focused { background: #2a1424; }
+.sel-thumb {
+  position: relative;
+  width: 100%;
+  height: 58%;
+  border-radius: calc(6px * var(--k));
+  overflow: hidden;
+}
+.sel-thumb canvas { width: 100%; height: 100%; display: block; }
+.sel-lockface {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(26px * var(--k));
+  color: rgba(255, 214, 236, 0.9);
+}
+.sel-rank {
+  position: absolute;
+  top: calc(10px * var(--k) + 4px);
+  right: calc(8px * var(--k) + 4px);
+  min-width: calc(24px * var(--k));
+  text-align: center;
+  padding: 2px;
+  background: rgba(10, 7, 16, 0.8);
+  border-radius: 5px;
+  font: bold calc(18px * var(--k)) var(--sel-font);
+  text-shadow: 0 0 8px var(--rank-glow, transparent);
+}
+.sel-name {
+  margin-top: calc(8px * var(--k));
+  padding: 0 4px;
+  font: bold calc(13px * var(--k)) var(--sel-font);
+  color: var(--sel-ink-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sel-card.focused .sel-name { color: #ffe9c9; }
+.sel-card.flipped .sel-name { color: #ffd6ec; }
+.sel-tag {
+  padding: 0 4px;
+  margin-top: calc(3px * var(--k));
+  font: calc(10px * var(--k)) var(--sel-font);
+  color: rgba(180, 150, 200, 0.75);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sel-cardfoot {
+  position: absolute;
+  left: calc(6px * var(--k) + 4px);
+  right: calc(6px * var(--k) + 4px);
+  bottom: calc(8px * var(--k));
+  display: flex;
+  justify-content: space-between;
+  font: calc(11px * var(--k)) var(--sel-font);
+}
+.sel-best { color: var(--sel-gold); }
+.sel-best.none { color: rgba(150, 130, 170, 0.5); }
+.sel-coins { color: rgba(255, 209, 102, 0.45); }
+.sel-coins.full { color: var(--sel-gold); }
+.sel-lockprog { color: rgba(255, 180, 84, 0.8); }
+/* flipped face: the ◂A chip owns the bottom-left corner — indent the lock
+ * progress past it (the canvas indented to x+36 for the same reason) */
+.sel-card.flipped .sel-cardfoot { padding-left: 30px; }
+
+/* corner chips — mouse + hotkey (never arrow-focused) */
+.sel-x, .sel-bchip {
+  position: absolute;
+  padding: 0;
+  border-radius: 5px;
+  font: bold 11px var(--sel-font);
+  line-height: 1;
+}
+.sel-x {
+  top: 8px; left: 8px;
+  width: 20px; height: 20px;
+  background: rgba(20, 10, 16, 0.85);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  color: rgba(255, 150, 150, 0.9);
+}
+.sel-x:hover { background: rgba(255, 90, 90, 0.85); color: #fff; border-color: #ff6b6b; }
+.sel-bchip {
+  bottom: 8px; right: 6px;
+  width: 34px; height: 22px;
+  background: rgba(26, 10, 22, 0.92);
+  border: 1px solid rgba(255, 79, 160, 0.55);
+  color: rgba(255, 190, 220, 0.95);
+  border-radius: 6px;
+}
+.sel-bchip.back { left: 4px; right: auto; }
+.sel-bchip:hover { background: rgba(255, 79, 160, 0.85); color: #1b0a14; border-color: var(--sel-pink); }
+
+/* ---- footer ---- */
+.sel-footer {
+  position: absolute;
+  top: 512px;
+  display: flex;
+  gap: 12px;
+}
+.sel-fbtn {
+  width: 196px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--sel-line);
+  border-radius: 6px;
+  color: var(--sel-ink-dim);
+  font: bold 12px var(--sel-font);
+}
+.sel-fbtn.focused, .sel-fbtn:hover { background: rgba(255, 180, 84, 0.16); border-color: var(--sel-accent); color: #ffe9c9; }
+.sel-fbtn-pink.focused, .sel-fbtn-pink:hover { background: rgba(255, 79, 160, 0.16); border-color: var(--sel-pink); color: #ffd6ec; }
+.sel-fbtn-cyan.focused, .sel-fbtn-cyan:hover { background: rgba(140, 242, 255, 0.16); border-color: var(--sel-cyan); color: #dcf8ff; }
+.sel-swatch { width: 12px; height: 12px; flex: 0 0 auto; }
+
+/* ---- hint lines ---- */
+.sel-hints {
+  position: absolute;
+  top: 544px;
+  left: 0; right: 0;
+  text-align: center;
+}
+.sel-hint { font: 12px var(--sel-font); color: rgba(150, 130, 170, 0.85); margin-top: 6px; }
+.sel-hint.hint-1 { font-size: 13px; color: rgba(232, 220, 242, 0.7); }
+
+/* ---- delete-confirm modal (in-screen; scrim gates the cards) ---- */
+.sel-confirm {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(5, 3, 10, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+.sel-confirm-box {
+  width: 460px;
+  padding: 30px 20px 20px;
+  background: #181022;
+  border: 2px solid #ff6b6b;
+  border-radius: var(--sel-radius);
+  text-align: center;
+  transform: translateY(-20px);
+}
+.sel-confirm-title { font: bold 16px var(--sel-font); color: #ffe9c9; }
+.sel-confirm-sub { margin-top: 10px; font: 11px var(--sel-font); color: rgba(200, 170, 220, 0.8); }
+.sel-confirm-row { margin-top: 24px; display: flex; gap: 20px; justify-content: center; }
+.sel-confirm-btn {
+  width: 160px; height: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(140, 110, 160, 0.35);
+  border-radius: 8px;
+  color: var(--sel-ink-dim);
+  font: bold 13px var(--sel-font);
+}
+.sel-confirm-btn.focused, .sel-confirm-btn:hover { background: rgba(255, 180, 84, 0.18); border-color: var(--sel-accent); color: #fff; }
+.sel-confirm-btn.danger.focused, .sel-confirm-btn.danger:hover { background: rgba(255, 90, 90, 0.25); border-color: #ff6b6b; }
+
+/* ---- Phase 2: pause / results / LINE-results panels (DOM) ----
+ * Scrim + panel over the live canvas world; artboard px mirror the canvas
+ * layouts. Shared .pan-* primitives; per-screen res-… / lr-… content. */
+.screen-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: default;
+  font-family: var(--sel-font);
+  user-select: none;
+}
+#screen-paused { background: rgba(8, 5, 14, 0.66); }
+#screen-results { background: rgba(8, 5, 14, 0.82); }
+#screen-lineresults { background: rgba(8, 5, 14, 0.72); }
+
+.pan-title {
+  position: absolute;
+  top: 158px; /* canvas: baseline at H*0.3 — 44px glyphs land here */
+  font: bold 44px var(--sel-font);
+  color: var(--sel-accent);
+  text-shadow: 0 0 24px var(--sel-accent);
+}
+.pan-list {
+  position: absolute;
+  top: 229px; /* canvas: H*0.3 + 40 */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pan-btn {
+  width: 340px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid var(--sel-line); /* constant width — color-only focus */
+  border-radius: 8px;
+  color: var(--sel-ink-dim);
+  font: bold 15px var(--sel-font);
+}
+.pan-btn.focused, .pan-btn:hover {
+  background: rgba(255, 180, 84, 0.14);
+  border-color: var(--sel-accent);
+  color: #ffe9c9;
+}
+.pan-hint {
+  position: absolute;
+  top: 560px; /* just under the last pause button (canvas: H*0.88) */
+  font: 12px var(--sel-font);
+  color: rgba(150, 130, 170, 0.8);
+}
+
+/* ---- results ---- */
+.res-practice {
+  position: absolute; top: 44px;
+  font: bold 13px var(--sel-font); color: var(--sel-cyan);
+}
+.res-title {
+  position: absolute; top: 66px; /* canvas baseline H*0.155 */
+  font: bold 40px var(--sel-font); color: var(--sel-gold);
+  text-shadow: 0 0 26px var(--sel-gold);
+}
+.res-time { position: absolute; top: 116px; font: bold 24px var(--sel-font); color: var(--sel-ink); }
+.res-newbest {
+  position: absolute; top: 146px;
+  font: 13px var(--sel-font); color: var(--sel-gold);
+  animation: res-pulse 0.9s ease-in-out infinite;
+}
+@keyframes res-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+.res-prevbest { position: absolute; top: 146px; font: 13px var(--sel-font); color: var(--sel-muted); }
+.res-stats { position: absolute; top: 168px; font: 13px var(--sel-font); color: var(--sel-ink-dim); }
+.res-alt { position: absolute; top: 186px; font: 13px var(--sel-font); color: #ff78dc; }
+
+.res-rankrow {
+  position: absolute; top: 210px;
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 60px; width: 700px; left: 50%; transform: translateX(-50%);
+}
+.res-axis { width: 220px; text-align: center; }
+.res-axis-title { font: 11px var(--sel-font); color: var(--sel-muted); }
+.res-axis-grade { font: bold 30px var(--sel-font); margin-top: 2px; }
+.res-axis-line { font: 10px var(--sel-font); color: rgba(150, 130, 170, 0.5); margin-top: 3px; }
+.res-axis-note { font: 10px var(--sel-font); color: rgba(180, 150, 200, 0.7); margin-top: 5px; }
+.res-seal { width: 140px; text-align: center; padding-top: 4px; }
+.res-seal-grade {
+  font: bold 64px var(--sel-font);
+  text-shadow: 0 0 28px var(--seal-glow, transparent);
+  animation: seal-pulse 1.2s ease-in-out infinite;
+}
+@keyframes seal-pulse {
+  0%, 100% { text-shadow: 0 0 22px var(--seal-glow, transparent); }
+  50% { text-shadow: 0 0 34px var(--seal-glow, transparent); }
+}
+.res-seal-note { font: 9px var(--sel-font); color: rgba(150, 130, 170, 0.7); }
+
+.res-splits {
+  position: absolute; left: 26px; top: 200px;
+  font: 11px var(--sel-font); text-align: left;
+}
+.res-splits-title { font: bold 11px var(--sel-font); color: var(--sel-muted); margin-bottom: 8px; }
+.res-split { display: flex; gap: 0; margin-top: 6px; color: rgba(216, 196, 232, 0.85); }
+.res-split .rs-name { width: 34px; }
+.res-split .rs-cum { width: 62px; }
+.res-split .rs-delta { width: 52px; }
+.res-split .rs-delta.ahead { color: #7dffc8; }
+.res-split .rs-delta.behind { color: #ff6b6b; }
+.res-split .rs-delta.none { color: rgba(150, 130, 170, 0.6); }
+.res-split .rs-gold { color: var(--sel-gold); }
+
+.res-list { top: 454px; gap: 8px; } /* canvas: H*0.72, step 46 */
+.res-btn { width: 300px; height: 38px; font-size: 14px; }
+.res-btn.focused, .res-btn:hover {
+  background: rgba(255, 209, 102, 0.14);
+  border-color: var(--sel-gold);
+  color: #fff3d6;
+}
+
+/* ---- THE LINE results ---- */
+.lr-title {
+  position: absolute; top: 30px;
+  font: bold 40px var(--sel-font); color: var(--sel-cyan);
+  text-shadow: 0 0 26px var(--sel-cyan);
+}
+.lr-sub { position: absolute; top: 78px; font: 12px var(--sel-font); color: var(--sel-muted); }
+.lr-clock { position: absolute; top: 108px; font: bold 46px var(--sel-font); color: var(--sel-ink); }
+.lr-clock.best { color: var(--sel-gold); text-shadow: 0 0 18px var(--sel-gold); }
+.lr-newbest { position: absolute; top: 160px; font: bold 13px var(--sel-font); color: var(--sel-gold); }
+.lr-deaths { position: absolute; top: 180px; font: 12px var(--sel-font); color: rgba(200, 170, 220, 0.8); }
+
+.lr-splits {
+  position: absolute; top: 212px;
+  width: 560px;
+  max-height: 250px;
+  overflow-y: auto;
+  font: 11px var(--sel-font);
+}
+.lr-split {
+  display: flex; align-items: center;
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+.lr-split:nth-child(odd) { background: rgba(255, 255, 255, 0.055); }
+.lr-split:nth-child(even) { background: rgba(255, 255, 255, 0.03); }
+.lr-split .lr-name { flex: 1; color: var(--sel-ink-dim); text-align: left; }
+.lr-split .lr-dead { width: 80px; text-align: right; color: rgba(255, 138, 93, 0.85); }
+.lr-split .lr-clean { width: 80px; text-align: right; color: rgba(160, 255, 160, 0.6); }
+.lr-split .lr-t { width: 90px; text-align: right; color: var(--sel-ink); }
+.lr-split .lr-cum { width: 90px; text-align: right; color: rgba(140, 242, 255, 0.75); }
+
+.lr-list { top: 512px; gap: 10px; }
+.lr-btn { width: 300px; height: 38px; font-size: 14px; }
+.lr-btn.focused, .lr-btn:hover {
+  background: rgba(140, 242, 255, 0.14);
+  border-color: var(--sel-cyan);
+  color: #dcf8ff;
+}
+
+/* absolute rows don't inherit the flex centering — pin every panel row to
+ * the artboard's horizontal center explicitly (res-rankrow already does;
+ * res-splits stays intentionally left-anchored at x=26) */
+.pan-title, .pan-list, .pan-hint,
+.res-practice, .res-title, .res-time, .res-newbest, .res-prevbest, .res-stats, .res-alt,
+.lr-title, .lr-sub, .lr-clock, .lr-newbest, .lr-deaths, .lr-splits {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ---- Phase 3: SKINS + SECRETS (DOM) ----
+ * No scrim — like the select screen these float over the ambient canvas
+ * background (only the gameplay panels dim the world behind). */
+.sk-title { color: var(--sel-accent); text-shadow: 0 0 24px var(--sel-accent); top: 28px; font-size: 38px; }
+.sc-title { color: var(--sel-pink); text-shadow: 0 0 24px var(--sel-pink); top: 28px; font-size: 38px; }
+.sk-sub {
+  position: absolute; top: 74px; left: 50%; transform: translateX(-50%);
+  font: 12px var(--sel-font); color: var(--sel-muted);
+  white-space: nowrap; /* abspos shrink-to-fit wraps at the 50% edge otherwise */
+}
+
+.sk-grid {
+  /* 21 skins → 11 rows in 2 cols; compacted so the last row clears BACK
+     (~570). top 92 + 11×36 + 10×4 = 528 bottom, room for ~24 total. */
+  position: absolute; top: 92px; left: 50%; transform: translateX(-50%);
+  display: grid; grid-template-columns: 560px; gap: 4px;
+}
+.sk-grid.two { grid-template-columns: 476px 476px; column-gap: 18px; }
+.sk-row {
+  position: relative;
+  height: 36px;
+  display: flex; align-items: center; gap: 9px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 2px solid rgba(140, 110, 160, 0.45);
+  border-radius: 8px;
+  text-align: left;
+  color: inherit;
+}
+.sk-row.locked { background: rgba(255, 255, 255, 0.025); border-color: rgba(140, 110, 160, 0.2); }
+button.sk-row.focused, button.sk-row:hover { background: rgba(255, 180, 84, 0.13); border-color: var(--sel-accent); }
+.sk-swatch-cv { width: 30px; height: 30px; flex: 0 0 auto; margin: 0 -4px 0 -6px; }
+.sk-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sk-name { font: bold 14px var(--sel-font); color: var(--sel-ink); }
+button.sk-row.focused .sk-name { color: #ffe9c9; }
+.sk-row.locked .sk-name { color: rgba(180, 160, 200, 0.5); }
+.sk-need { font: 10.5px var(--sel-font); color: rgba(255, 180, 84, 0.65); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sk-need.open { color: rgba(160, 255, 160, 0.8); }
+.sk-equipped { margin-left: auto; font: bold 11px var(--sel-font); color: var(--sel-gold); flex: 0 0 auto; }
+.sk-back, .sc-back { position: absolute; top: auto; bottom: 26px; }
+.pan-back { width: 220px; height: 34px; font-size: 13px; }
+
+.sc-list {
+  position: absolute; top: 116px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sc-empty { color: rgba(200, 170, 220, 0.7); font: 14px var(--sel-font); margin-top: 120px; text-align: center; }
+.sc-row {
+  position: relative;
+  width: 620px; height: 60px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 2px solid rgba(140, 110, 160, 0.45);
+  border-radius: 9px;
+  text-align: left;
+  color: inherit;
+}
+.sc-row.locked { background: rgba(255, 255, 255, 0.025); border-color: rgba(140, 110, 160, 0.2); }
+button.sc-row.focused, button.sc-row:hover { background: rgba(255, 79, 160, 0.14); border-color: var(--sel-pink); }
+.sc-diamond {
+  width: 22px; height: 22px; flex: 0 0 auto;
+  margin: 0 4px;
+  background: var(--tint, var(--sel-pink));
+  box-shadow: 0 0 10px var(--tint, var(--sel-pink));
+  transform: rotate(45deg);
+}
+.sc-diamond.locked { opacity: 0.4; box-shadow: none; }
+.sc-text { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.sc-name { font: bold 16px var(--sel-font); color: var(--sel-ink); }
+button.sc-row.focused .sc-name { color: #ffe9c9; }
+.sc-row.locked .sc-name { color: rgba(180, 160, 200, 0.55); }
+.sc-cond { font: 11px var(--sel-font); color: rgba(255, 120, 190, 0.7); }
+.sc-cond.open { color: rgba(160, 255, 160, 0.85); }
+.sc-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: 0 0 auto; }
+.sc-progress { font: 11px var(--sel-font); color: rgba(180, 150, 200, 0.75); }
+.sc-play { font: bold 12px var(--sel-font); color: rgba(255, 209, 102, 0.75); }
+button.sc-row.focused .sc-play { color: var(--sel-gold); }
+
+/* ---- Phase 4: SETTINGS (DOM) ----
+ * Two visual columns, one flat focus order. Canvas budget preserved
+ * (ROADMAP checklist A: left worst ~558, right ~510, BACK 578). */
+.set-title { color: var(--sel-cyan); text-shadow: 0 0 24px var(--sel-cyan); top: 28px; font-size: 38px; }
+.set-col { position: absolute; top: 108px; display: flex; flex-direction: column; gap: 7px; text-align: left; }
+.set-left { left: 96px; width: 420px; }
+.set-right { left: 590px; width: 444px; gap: 4px; }
+.set-head {
+  display: flex; align-items: baseline; gap: 12px;
+  font: bold 13px var(--sel-font); color: var(--sel-accent);
+  margin: 0 0 5px 0;
+}
+.set-headnote { font: 11px var(--sel-font); color: var(--sel-muted); font-weight: normal; }
+.set-padhead { margin-top: 14px; }
+
+.set-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 2px solid rgba(140, 110, 160, 0.35);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--sel-ink-dim);
+  font: bold 12px var(--sel-font);
+  text-align: left;
+}
+.set-row.focused, .set-row:hover { background: rgba(140, 242, 255, 0.10); border-color: var(--sel-cyan); color: #dcf8ff; }
+.set-slider { height: 36px; }
+.set-label { flex: 0 0 auto; }
+.set-slider .set-label { width: 162px; }
+.set-bar {
+  position: relative;
+  width: 150px; height: 8px; flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 4px;
+  cursor: ew-resize;
+}
+.set-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: #5fb8c9;
+  border-radius: 4px;
+}
+.set-row.focused .set-fill { background: var(--sel-cyan); }
+.set-val { margin-left: auto; font-weight: bold; color: #a894bc; }
+.set-row.focused .set-val { color: #dcf8ff; }
+.set-toggle { height: 30px; justify-content: space-between; }
+.set-state.on { color: rgba(160, 255, 160, 0.9); }
+.set-state.off { color: rgba(255, 138, 93, 0.85); }
+.set-reset {
+  height: 28px; justify-content: center;
+  background: rgba(255, 255, 255, 0.035);
+  font: bold 11px var(--sel-font); color: #a894bc;
+}
+.set-reset.focused, .set-reset:hover { background: rgba(255, 180, 84, 0.12); border-color: var(--sel-accent); color: #ffe9c9; }
+
+.set-pad { height: 22px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font: 11px var(--sel-font); }
+.set-row.set-pad { border-radius: 5px; }
+.set-pad.active { background: rgba(160, 255, 160, 0.10); border-color: rgba(160, 255, 160, 0.6); color: rgba(190, 255, 190, 0.95); }
+.set-pad.dead { color: rgba(140, 120, 158, 0.55); border: none; background: none; }
+.set-padinfo { color: rgba(168, 148, 188, 0.8); }
+.set-padnote { font: 11px var(--sel-font); color: var(--sel-muted); }
+.set-padhint { font: 11px var(--sel-font); color: rgba(168, 148, 188, 0.9); }
+.set-autopick { height: 20px; justify-content: center; font: 11px var(--sel-font); border: none; background: none; color: rgba(168, 148, 188, 0.75); }
+.set-autopick.focused, .set-autopick:hover { color: #dcf8ff; }
+
+.set-key { height: 25px; justify-content: space-between; font: bold 11px var(--sel-font); border-radius: 6px; }
+.set-bind { color: #a894bc; font-weight: bold; }
+.set-key.focused .set-bind { color: var(--sel-cyan); }
+.set-key.waiting { background: rgba(255, 79, 160, 0.16); border-color: var(--sel-pink); }
+.set-bind.waiting { color: var(--sel-pink); animation: res-pulse 0.9s ease-in-out infinite; }
+.set-rebindmsg { margin-top: 8px; text-align: center; font: bold 12px var(--sel-font); color: #ff8a5d; }
+
+.set-back { top: auto; bottom: 26px; }
+
+/* ---- Phase 5: HUD chrome (DOM) ----
+ * Exact canvas lanes (ROADMAP checklist A). pointer-events:none everywhere —
+ * gameplay owns the mouse. contain + tabular-nums + transform-only fill keep
+ * the per-frame sync off the layout path. Sits UNDER the pause/results
+ * scrims (built before the panels — earlier sibling in #ui-root). */
+#screen-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: var(--sel-font, ui-monospace, Menlo, monospace);
+  contain: layout style;
+  user-select: none;
+}
+.hud-hearts { position: absolute; left: 16px; top: 15px; display: flex; }
+.hud-heart { width: 22px; font-size: 18px; line-height: 1; color: #ff5d6c; }
+.hud-heart.empty { color: #3a232c; }
+.hud-name {
+  position: absolute; left: 16px; top: 47px;
+  font: bold 13px var(--sel-font); color: #d8c4e8;
+}
+.hud-timerow { position: absolute; left: 16px; top: 67px; display: flex; }
+.hud-time {
+  width: 132px; /* fixed column — the S-target never jitters */
+  font: bold 13px var(--sel-font); color: #d8c4e8;
+  font-variant-numeric: tabular-nums;
+}
+.hud-starget {
+  font: bold 13px var(--sel-font); color: rgba(255, 209, 102, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+.hud-starget.off { color: rgba(150, 130, 170, 0.55); }
+.hud-stats { position: absolute; left: 16px; top: 87px; font: bold 13px var(--sel-font); color: #d8c4e8; }
+
+.hud-dash { position: absolute; left: 16px; top: 113px; display: flex; align-items: center; }
+.hud-dash-label { font: bold 13px var(--sel-font); color: #d8c4e8; width: 46px; }
+.hud-dash-bar {
+  position: relative;
+  width: 100px; height: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.hud-dash-fill {
+  position: absolute; inset: 0;
+  background: var(--hud-dim, #7c6650);
+  border-radius: 5px;
+  transform-origin: left center;
+}
+.dash-ready .hud-dash-fill {
+  background: var(--hud-ready, #ffb454);
+  /* the canvas drew the ready fill WITH its own glow (shadowBlur 10 of the
+   * skin color) — light bleeds over the fill's edges and brightens it;
+   * a flat fill read duller than the player (nikita: VOID and others) */
+  box-shadow: 0 0 10px var(--hud-ready, #ffb454), 0 0 4px var(--hud-ready, #ffb454) inset;
+}
+.dash-ready .hud-dash-bar { box-shadow: 0 0 10px var(--hud-ready, #ffb454); overflow: visible; }
+.hud-dash-ready {
+  margin-left: 8px;
+  font: bold 11px var(--sel-font);
+  color: var(--hud-ready, #ffb454);
+  visibility: hidden;
+}
+.dash-ready .hud-dash-ready { visibility: visible; animation: hud-pulse 0.785s ease-in-out infinite; }
+@keyframes hud-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+.hud-line {
+  position: absolute; right: 14px; top: 45px;
+  font: bold 13px var(--sel-font); color: var(--sel-cyan, #8CF2FF);
+  font-variant-numeric: tabular-nums;
+}
+.hud-practice { position: absolute; left: 16px; top: 605px; font: bold 13px var(--sel-font); color: var(--sel-cyan, #8CF2FF); }
+.hud-playtest { position: absolute; left: 16px; top: 605px; font: bold 13px var(--sel-font); color: var(--sel-cyan, #8CF2FF); }

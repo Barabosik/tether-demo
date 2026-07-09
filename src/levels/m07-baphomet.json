@@ -1,0 +1,196 @@
+{
+ "id": "m07-baphomet",
+ "order": 12,
+ "worldId": 2,
+ "name": "BAPHOMET",
+ "tag": "the guardian of Hell",
+ "tint": "#ff7a3d",
+ "par": 160,
+ "sRankTime": 100,
+ "track": "music/w2-boss-baphomet.mp3",
+ "music": {
+  "root": -33,
+  "scale": [
+   0,
+   1,
+   4,
+   5,
+   7,
+   8,
+   11
+  ],
+  "bpm": 140,
+  "pad": "sawtooth",
+  "prog": [
+   0,
+   1,
+   4,
+   1
+  ],
+  "density": 0.62,
+  "hats": true,
+  "drive": true
+ },
+ "world": {
+  "w": 2400,
+  "h": 1150
+ },
+ "spawn": {
+  "x": 140,
+  "y": 964
+ },
+ "goal": {
+  "x": 2256,
+  "y": 890,
+  "w": 110,
+  "h": 110
+ },
+ "solids": [
+  {
+   "x": 0,
+   "y": 1000,
+   "w": 2400,
+   "h": 150
+  },
+  {
+   "x": 0,
+   "y": 830,
+   "w": 34,
+   "h": 170
+  },
+  {
+   "x": 2366,
+   "y": 830,
+   "w": 34,
+   "h": 170
+  },
+  {
+   "kind": "grip",
+   "x": 34,
+   "y": 560,
+   "w": 26,
+   "h": 440
+  },
+  {
+   "kind": "grip",
+   "x": 2340,
+   "y": 560,
+   "w": 26,
+   "h": 440
+  },
+  {
+   "kind": "gate",
+   "x": 2210,
+   "y": 800,
+   "w": 36,
+   "h": 200,
+   "link": "boss"
+  },
+  {
+   "x": 2210,
+   "y": 540,
+   "w": 36,
+   "h": 260
+  },
+  {
+   "x": 2210,
+   "y": 540,
+   "w": 190,
+   "h": 26
+  }
+ ],
+ "anchors": [
+  {
+   "x": 520,
+   "y": 430
+  },
+  {
+   "x": 900,
+   "y": 360
+  },
+  {
+   "x": 1200,
+   "y": 320
+  },
+  {
+   "x": 1500,
+   "y": 360
+  },
+  {
+   "x": 1880,
+   "y": 430
+  }
+ ],
+ "nodes": [
+  {
+   "x": 360,
+   "y": 840
+  },
+  {
+   "x": 2040,
+   "y": 840
+  }
+ ],
+ "enemies": [
+  {
+   "kind": "baphomet",
+   "x": 1200,
+   "y": 560
+  }
+ ],
+ "hints": [
+  {
+   "x": 360,
+   "y": 900,
+   "text": "the floor is HELLFIRE when it cleaves — SWING or CLING above",
+   "big": 0
+  },
+  {
+   "x": 1200,
+   "y": 780,
+   "text": "he GORES across — jump the lane; the SLAM bursts, then punish",
+   "big": 0
+  },
+  {
+   "x": 1200,
+   "y": 900,
+   "text": "then POGO the bared BRAND — no i-frames yet, only footwork",
+   "big": 0
+  }
+ ],
+ "coins": [],
+ "props": [],
+ "decor": [
+  {
+   "type": "column",
+   "x": 300,
+   "y": 1000,
+   "s": 1.4,
+   "fg": 0
+  },
+  {
+   "type": "column",
+   "x": 2100,
+   "y": 1000,
+   "s": 1.4,
+   "fg": 0
+  },
+  {
+   "type": "chain",
+   "x": 900,
+   "y": 400,
+   "s": 1.1,
+   "fg": 0
+  },
+  {
+   "type": "chain",
+   "x": 1500,
+   "y": 420,
+   "s": 1,
+   "fg": 0
+  }
+ ],
+ "spikes": [],
+ "triggers": [],
+ "hazards": []
+}

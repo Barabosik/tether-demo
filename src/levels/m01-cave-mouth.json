@@ -1,0 +1,225 @@
+{
+  "id": "m01-cave-mouth",
+  "order": 6,
+  "worldId": 2,
+  "name": "THE CAVE MOUTH",
+  "tag": "grip · slide · wall-jump",
+  "tint": "#d89040",
+  "par": 75,
+  "sRankTime": 50,
+  "track": "music/w2-mines.mp3",
+  "music": {
+    "root": -21,
+    "scale": [
+      0,
+      2,
+      3,
+      5,
+      7,
+      8,
+      10
+    ],
+    "bpm": 96,
+    "pad": "sawtooth",
+    "prog": [
+      0,
+      5,
+      3,
+      4
+    ],
+    "density": 0.32,
+    "hats": true,
+    "drive": false
+  },
+  "world": {
+    "w": 3600,
+    "h": 1500
+  },
+  "spawn": {
+    "x": 150,
+    "y": 584
+  },
+  "goal": {
+    "x": 3420,
+    "y": 450,
+    "w": 110,
+    "h": 110
+  },
+  "solids": [
+    {
+      "x": 0,
+      "y": 620,
+      "w": 620,
+      "h": 880
+    },
+    {
+      "x": 0,
+      "y": 320,
+      "w": 34,
+      "h": 300
+    },
+    {
+      "x": 620,
+      "y": 1180,
+      "w": 900,
+      "h": 320
+    },
+    {
+      "kind": "grip",
+      "x": 700,
+      "y": 560,
+      "w": 26,
+      "h": 620
+    },
+    {
+      "kind": "grip",
+      "x": 1000,
+      "y": 560,
+      "w": 26,
+      "h": 620
+    },
+    {
+      "x": 700,
+      "y": 520,
+      "w": 326,
+      "h": 40
+    },
+    {
+      "x": 1520,
+      "y": 900,
+      "w": 60,
+      "h": 600
+    },
+    {
+      "kind": "grip",
+      "x": 1720,
+      "y": 560,
+      "w": 26,
+      "h": 360
+    },
+    {
+      "x": 2020,
+      "y": 720,
+      "w": 260,
+      "h": 780
+    },
+    {
+      "kind": "grip",
+      "x": 2500,
+      "y": 500,
+      "w": 26,
+      "h": 420
+    },
+    {
+      "x": 2500,
+      "y": 920,
+      "w": 40,
+      "h": 580
+    },
+    {
+      "x": 1520,
+      "y": 1300,
+      "w": 1720,
+      "h": 200
+    },
+    {
+      "x": 3240,
+      "y": 620,
+      "w": 360,
+      "h": 880
+    },
+    {
+      "x": 3400,
+      "y": 560,
+      "w": 190,
+      "h": 60
+    },
+    {
+      "x": 3566,
+      "y": 320,
+      "w": 34,
+      "h": 300
+    }
+  ],
+  "anchors": [
+    {
+      "x": 2760,
+      "y": 300
+    }
+  ],
+  "hints": [
+    {
+      "x": 300,
+      "y": 500,
+      "text": "press INTO a green wall to CLING — no key needed",
+      "big": 1
+    },
+    {
+      "x": 340,
+      "y": 536,
+      "text": "SPACE off it wall-jumps · hold AWAY to peel",
+      "big": 0
+    },
+    {
+      "x": 940,
+      "y": 480,
+      "text": "ping-pong the chimney UP — jump can't reach the cap",
+      "big": 1
+    },
+    {
+      "x": 1760,
+      "y": 520,
+      "text": "cling, wall-jump, then DASH to the ledge",
+      "big": 1
+    },
+    {
+      "x": 2540,
+      "y": 460,
+      "text": "cling and GRAPPLE the ring — fire from the wall",
+      "big": 1
+    }
+  ],
+  "coins": [
+    {
+      "x": 940,
+      "y": 470
+    },
+    {
+      "x": 2140,
+      "y": 660
+    },
+    {
+      "x": 2760,
+      "y": 380
+    }
+  ],
+  "decor": [
+    {
+      "type": "column",
+      "x": 400,
+      "y": 620,
+      "s": 1.2,
+      "fg": 0
+    },
+    {
+      "type": "chain",
+      "x": 2760,
+      "y": 340,
+      "s": 1,
+      "fg": 0
+    },
+    {
+      "type": "root",
+      "x": 1000,
+      "y": 1180,
+      "s": 1,
+      "fg": 0
+    }
+  ],
+  "spikes": [],
+  "nodes": [],
+  "enemies": [],
+  "triggers": [],
+  "props": [],
+  "hazards": []
+}

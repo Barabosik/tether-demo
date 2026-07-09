@@ -1,0 +1,206 @@
+{
+  "id": "m02-the-prospect",
+  "order": 7,
+  "worldId": 2,
+  "name": "THE PROSPECT",
+  "tag": "movers · belts · momentum",
+  "tint": "#c88535",
+  "par": 85,
+  "sRankTime": 58,
+  "track": "music/w2-mines.mp3",
+  "music": {
+    "root": -21,
+    "scale": [
+      0,
+      2,
+      3,
+      5,
+      7,
+      8,
+      10
+    ],
+    "bpm": 104,
+    "pad": "sawtooth",
+    "prog": [
+      0,
+      5,
+      3,
+      4
+    ],
+    "density": 0.32,
+    "hats": true,
+    "drive": false
+  },
+  "world": {
+    "w": 4400,
+    "h": 1500
+  },
+  "spawn": {
+    "x": 150,
+    "y": 864
+  },
+  "goal": {
+    "x": 4220,
+    "y": 710,
+    "w": 110,
+    "h": 110
+  },
+  "solids": [
+    {
+      "x": 0,
+      "y": 900,
+      "w": 760,
+      "h": 600
+    },
+    {
+      "x": 0,
+      "y": 600,
+      "w": 34,
+      "h": 300
+    },
+    {
+      "x": 760,
+      "y": 1300,
+      "w": 900,
+      "h": 200
+    },
+    {
+      "x": 772,
+      "y": 1180,
+      "w": 110,
+      "h": 120
+    },
+    {
+      "kind": "mover",
+      "x": 900,
+      "y": 900,
+      "w": 200,
+      "h": 26,
+      "x2": 1480,
+      "y2": 900,
+      "speed": 120
+    },
+    {
+      "x": 1600,
+      "y": 900,
+      "w": 420,
+      "h": 600
+    },
+    {
+      "x": 2020,
+      "y": 900,
+      "w": 520,
+      "h": 40,
+      "surface": "conveyor",
+      "conveyorSpeed": 260
+    },
+    {
+      "x": 2540,
+      "y": 900,
+      "w": 40,
+      "h": 600
+    },
+    {
+      "x": 2900,
+      "y": 960,
+      "w": 320,
+      "h": 540
+    },
+    {
+      "x": 2020,
+      "y": 1300,
+      "w": 880,
+      "h": 200
+    },
+    {
+      "x": 3220,
+      "y": 1360,
+      "w": 900,
+      "h": 140
+    },
+    {
+      "kind": "mover",
+      "x": 3400,
+      "y": 1200,
+      "w": 180,
+      "h": 26,
+      "x2": 3400,
+      "y2": 760,
+      "speed": 100
+    },
+    {
+      "x": 4120,
+      "y": 820,
+      "w": 280,
+      "h": 680
+    },
+    {
+      "x": 4366,
+      "y": 520,
+      "w": 34,
+      "h": 300
+    }
+  ],
+  "anchors": [
+    {
+      "x": 3760,
+      "y": 560
+    }
+  ],
+  "hints": [
+    {
+      "x": 300,
+      "y": 800,
+      "text": "ride the cart — hop off and you KEEP its speed",
+      "big": 1
+    },
+    {
+      "x": 2140,
+      "y": 820,
+      "text": "the belt hurls you — let it build, then JUMP the gap",
+      "big": 1
+    },
+    {
+      "x": 3300,
+      "y": 1120,
+      "text": "ride the lift UP, then GRAPPLE off the top",
+      "big": 1
+    }
+  ],
+  "coins": [
+    {
+      "x": 1280,
+      "y": 820
+    },
+    {
+      "x": 2760,
+      "y": 860
+    },
+    {
+      "x": 3760,
+      "y": 480
+    }
+  ],
+  "decor": [
+    {
+      "type": "chain",
+      "x": 3400,
+      "y": 800,
+      "s": 1.1,
+      "fg": 0
+    },
+    {
+      "type": "column",
+      "x": 700,
+      "y": 900,
+      "s": 1,
+      "fg": 0
+    }
+  ],
+  "spikes": [],
+  "nodes": [],
+  "enemies": [],
+  "triggers": [],
+  "props": [],
+  "hazards": []
+}
