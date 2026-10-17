@@ -2,7 +2,7 @@ import { fmtTime, displayName } from "./util.js";
 import { icon, hintLine } from "./icons.js";
 import { WORLD_NAME } from "./worlds.js";
 import { LEVELS, isDeletable } from "./levels.js";
-import { makeThumbs } from "./ui.js";
+import { makeThumbs, THUMB_W, THUMB_H } from "./ui.js";
 import { GRADE_COLOR, PALETTES, unlockedPalettes, saveReader, bsideUnlock } from "./rank.js";
 import { emit, on as busOn } from "./uiBus.js";
 import { sfx } from "./audio.js";
@@ -269,10 +269,10 @@ function buildGrid(wl, n) {
     // <canvas> (a cached node can't be re-parented; drawImage copies pixels)
     const thumbWrap = el("div", "sel-thumb");
     const cv = document.createElement("canvas");
-    cv.width = 184; cv.height = 104;
+    cv.width = THUMB_W; cv.height = THUMB_H;
     const g = cv.getContext("2d");
-    if (thumbs[di]) g.drawImage(thumbs[di], 0, 0, 184, 104);
-    if (lockedB) { g.fillStyle = "rgba(13,17,15,0.6)"; g.fillRect(0, 0, 184, 104); }
+    if (thumbs[di]) g.drawImage(thumbs[di], 0, 0);
+    if (lockedB) { g.fillStyle = "rgba(13,17,15,0.6)"; g.fillRect(0, 0, THUMB_W, THUMB_H); }
     thumbWrap.appendChild(cv);
     if (lockedB) { const lf = el("div", "sel-lockface"); lf.appendChild(icon("lock")); thumbWrap.appendChild(lf); }
     body.appendChild(thumbWrap);
