@@ -1579,9 +1579,13 @@ function drawToolbar(ctx, t) {
   const cat = CATEGORIES.find((c) => c[0] === ed.paletteCat) || CATEGORIES[0];
   const accent = cat[1];
   x = 8;
+  // chips share the room left of the view controls (Snap/Zoom/Undo take
+  // ~240px on the right), so an 8- or 9-tool category never runs under them
+  const nTools = cat[2].length;
+  const tw = Math.min(118, Math.floor((W - 256 - (nTools - 1) * 4) / nTools));
   for (const key of cat[2]) {
-    toolChipDraw(ctx, x, y0 + 32, 118, 24, key, accent);
-    x += 122;
+    toolChipDraw(ctx, x, y0 + 32, tw, 24, key, accent);
+    x += tw + 4;
   }
   // view controls trail the tools (right side): snap dropdown, zoom, undo
   const snapLbl = ed.snapMode === 0 ? "off" : ed.snapMode === 0.5 ? "0.5x" : ed.snapMode + "x";
