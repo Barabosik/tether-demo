@@ -1,4 +1,5 @@
-import { fmtTime } from "./util.js";
+import { fmtTime, displayName } from "./util.js";
+import { icon, hintLine } from "./icons.js";
 import { WORLD_NAME } from "./worlds.js";
 import { LEVELS, isDeletable } from "./levels.js";
 import { makeThumbs } from "./ui.js";
@@ -77,9 +78,9 @@ export function initSelectScreen(deps) {
 
   const title = el("div", "sel-title", "TETHER");
   subtitleEl = el("div", "sel-subtitle");
-  headerEl = el("div", "sel-worldnav");
+  headerEl = el("div", "sel-worldnav"); // [<] world name [>] · LINE · [+]
   const head = el("div", "sel-head");
-  head.append(title, subtitleEl, headerEl);
+  head.append(title, headerEl);
 
   gridEl = el("div", "sel-grid");
   footerEl = el("div", "sel-footer");
@@ -142,12 +143,9 @@ function refresh() {
   const n = wl.length;
 
   const wname = WORLD_NAME[worldSel]; // named worlds wear their name up top
-  // compact "W1 ·" prefix — long names (THE SUNKEN SHALLOWS) must clear the
-  // world-nav chips; .long steps the font down as the second stage
-  subtitleEl.textContent = wname
-    ? `— W${worldSel} · ${wname} —`
-    : `— WORLD ${worldSel} —`;
-  subtitleEl.classList.toggle("long", subtitleEl.textContent.length > 22);
+  subtitleEl.replaceChildren();
+  if (wname) subtitleEl.append(el("span", "sel-wnum", `World ${worldSel} · `), wname);
+  else subtitleEl.textContent = `World ${worldSel}`;
 
   buildWorldNav(worlds, worldSel, n);
   buildGrid(wl, n);
@@ -184,40 +182,35 @@ function refresh() {
 
 function buildWorldNav(worlds, worldSel, n) {
   headerEl.replaceChildren();
-  // chips FLANK the centered subtitle at the canvas row (y64): offsets from
-  // the artboard center are the exact drawSelect numbers
+  // one centered row: the world switch hugs the world name, then the
+  // world-level actions. DOM order is the left/right arrow order.
   const multi = worlds.length > 1 || worldSel !== worlds[0];
-  const place = (b, dx, w) => {
-    b.style.left = `calc(50% + ${dx}px)`;
-    b.style.width = w + "px";
-    headerEl.appendChild(b);
-  };
   const prev = btn("sel-chip sel-arrow", { action: "world", arg: -1 }, "previous world");
-  prev.textContent = "‹";
-  place(prev, multi ? -160 : -138, 44);
+  prev.appendChild(icon("chevronLeft"));
+  headerEl.append(prev, subtitleEl);
 
   if (multi) {
     const next = btn("sel-chip sel-arrow", { action: "world", arg: 1 }, "next world");
-    next.textContent = "›";
-    place(next, 116, 44);
+    next.appendChild(icon("chevronRight"));
+    headerEl.appendChild(next);
+  }
+  if (n >= 2) { // THE LINE — the whole-world marathon
+    const line = btn("sel-chip sel-line", { action: "line", arg: worldSel }, "run the line");
+    const lb = (() => { try { return JSON.parse(lsGet("tether.line." + worldSel) || "null"); } catch { return null; } })();
+    line.append(icon("play", { fill: true }), el("span", null, "The line"));
+    line.title = `All ${n} levels, one clock${lb ? ` · best ${fmtTime(lb.total)}` : ""}`;
+    headerEl.appendChild(line);
   }
   const add = btn("sel-chip sel-worldnew", { action: "worldnew" }, "new world");
-  add.textContent = "+";
-  place(add, 170, 30);
-
-  if (n >= 2) { // THE LINE — the whole-world marathon
-    const line = btn("sel-chip sel-line", { action: "line", arg: worldSel }, "run THE LINE");
-    const lb = (() => { try { return JSON.parse(lsGet("tether.line." + worldSel) || "null"); } catch { return null; } })();
-    line.textContent = "LINE";
-    line.title = `all ${n} levels, one clock${lb ? ` · best ${fmtTime(lb.total)}` : ""}`;
-    place(line, 214, 62);
-  }
+  add.title = "New world";
+  add.appendChild(icon("plus"));
+  headerEl.appendChild(add);
 }
 
 function buildGrid(wl, n) {
   gridEl.replaceChildren();
   if (n === 0) {
-    const empty = el("div", "sel-empty", "this world is empty — press N to create its first level");
+    const empty = el("div", "sel-empty", "This world is empty. Press N to create its first level.");
     gridEl.appendChild(empty);
     gridEl.style.setProperty("--cw", "196px");
     gridEl.style.maxWidth = "";
@@ -233,7 +226,7 @@ function buildGrid(wl, n) {
   const rowsN = Math.max(1, Math.ceil(n / cols));
   let k = 1;
   if (n > cols) {
-    const availH = 496 - 118, needH = rowsN * 190 - 18;
+    const availH = 490 - 130, needH = rowsN * 190 - 18; // grid top → footer
     if (needH > availH) k = (availH + 18) / (rowsN * 190);
   }
   const cw = Math.floor(196 * k), ch = Math.floor(172 * k);
@@ -266,7 +259,6 @@ function buildGrid(wl, n) {
     const card = btn("sel-card", lockedB ? { action: "bflip", arg: L.id } : { action: "load", arg: di });
     card.classList.toggle("flipped", !!flipped);
     card.classList.toggle("locked", !!lockedB);
-    card.style.setProperty("--tint", D.tint || "#ffb454");
     // the BODY lifts on focus; the card box (hit geometry) and the corner
     // chips stay pinned — the canvas fixed the "hitbox dance" exactly this
     // way (lifted drawing, lift-independent chip coords)
@@ -280,38 +272,42 @@ function buildGrid(wl, n) {
     cv.width = 184; cv.height = 104;
     const g = cv.getContext("2d");
     if (thumbs[di]) g.drawImage(thumbs[di], 0, 0, 184, 104);
-    if (lockedB) { g.fillStyle = "rgba(10,7,16,0.55)"; g.fillRect(0, 0, 184, 104); }
+    if (lockedB) { g.fillStyle = "rgba(13,17,15,0.6)"; g.fillRect(0, 0, 184, 104); }
     thumbWrap.appendChild(cv);
-    if (lockedB) thumbWrap.appendChild(el("div", "sel-lockface", "🔒"));
+    if (lockedB) { const lf = el("div", "sel-lockface"); lf.appendChild(icon("lock")); thumbWrap.appendChild(lf); }
     body.appendChild(thumbWrap);
 
     // rank badge
     const rk = lsGet("tether.rank." + D.id);
     if (rk && !lockedB) {
       const badge = el("div", "sel-rank", rk);
-      badge.style.color = GRADE_COLOR[rk] || "#c9b8d8";
-      badge.style.setProperty("--rank-glow", GRADE_COLOR[rk] || "#c9b8d8");
+      badge.style.color = GRADE_COLOR[rk] || "#9aa29b";
       body.appendChild(badge);
     }
 
-    const name = el("div", "sel-name", `${flipped ? "B·" : `${j + 1}·`} ${D.name}`);
+    const name = el("div", "sel-name");
+    name.append(el("span", "sel-num", flipped ? "B" : String(j + 1)), el("span", "sel-name-t", displayName(D.name)));
     body.appendChild(name);
     const tag = el("div", "sel-tag", lockedB ? bu.label : D.tag);
     body.appendChild(tag);
 
     const foot = el("div", "sel-cardfoot");
     if (lockedB) {
-      foot.appendChild(el("span", "sel-lockprog", `🔒 ${bu.progress}`));
+      const lp = el("span", "sel-lockprog");
+      lp.append(icon("lock"), bu.progress);
+      foot.appendChild(lp);
     } else {
       const best = st.bests[di];
-      const bestEl = el("span", best ? "sel-best" : "sel-best none", best ? `★ ${fmtTime(best)}` : "not cleared");
+      const bestEl = el("span", best ? "sel-best" : "sel-best none", best ? fmtTime(best) : "Not cleared");
       foot.appendChild(bestEl);
       const ct = D.data.coins?.length || 0;
       if (ct) {
         let got = 0, alt = false;
         got = Number(lsGet("tether.coins." + D.id)) || 0;
         alt = !!lsGet("tether.alt." + D.id);
-        const coinEl = el("span", got >= ct ? "sel-coins full" : "sel-coins", `◆${got}/${ct}${alt ? " ✦" : ""}`);
+        const coinEl = el("span", got >= ct ? "sel-coins full" : "sel-coins");
+        coinEl.append(icon("diamond", { fill: true }), `${got}/${ct}`);
+        if (alt) coinEl.appendChild(icon("sparkle")); // secret exit found
         foot.appendChild(coinEl);
       }
     }
@@ -320,14 +316,15 @@ function buildGrid(wl, n) {
     // corner chips — mouse/keyboard-hotkey only, NOT in the arrow sequence
     if (isDeletable(L.id)) {
       const del = btn("sel-x", { action: "delcustom", arg: i }, `delete ${L.name}`);
-      del.textContent = "✕";
+      del.appendChild(icon("x"));
       del.dataset.chip = "1";
       card.appendChild(del);
     }
     if (bi != null) {
       const flip = btn("sel-bchip" + (flipped ? " back" : ""), { action: "bflip", arg: L.id },
         flipped ? "back to A-side" : "flip to B-side");
-      flip.textContent = flipped ? "◂ A" : "B ▸";
+      if (flipped) flip.append(icon("chevronLeft"), "A");
+      else flip.append("B", icon("chevronRight"));
       flip.dataset.chip = "1";
       card.appendChild(flip);
     }
@@ -345,25 +342,26 @@ function buildFooter() {
 
   const skins = btn("sel-fbtn", { action: "skins" });
   const sw = el("span", "sel-swatch"); sw.style.background = pal.body;
-  skins.append(sw, el("span", null, `SKINS (${un.size}/${PALETTES.length})`));
+  skins.append(sw, el("span", null, "Skins"), el("span", "sel-count", `${un.size}/${PALETTES.length}`));
 
   const bsides = LEVELS.filter((l) => l.bside);
   const openN = bsides.filter((l) => bsideUnlock(l, get).open).length;
-  const secrets = btn("sel-fbtn sel-fbtn-pink", { action: "secrets" });
-  secrets.textContent = `✦ SECRETS (${openN}/${bsides.length})`;
+  const secrets = btn("sel-fbtn", { action: "secrets" });
+  secrets.append(icon("sparkle"), el("span", null, "Secrets"), el("span", "sel-count", `${openN}/${bsides.length}`));
 
-  const settings = btn("sel-fbtn sel-fbtn-cyan", { action: "settings" });
-  settings.textContent = "⚙ SETTINGS (O)";
+  const settings = btn("sel-fbtn", { action: "settings" });
+  settings.append(icon("gear"), el("span", null, "Settings"));
 
   footerEl.append(skins, secrets, settings);
 }
 
 function buildHints() {
   hintsEl.replaceChildren();
+  const line = (cls, src) => { const d = el("div", "sel-hint " + cls); d.appendChild(hintLine(src)); return d; };
   hintsEl.append(
-    el("div", "sel-hint hint-1", "←→↑↓ choose · ENTER or click to play · TAB world · B flip to the B-side"),
-    el("div", "sel-hint hint-2", "RMB/E grapple · SPACE release/jump · SHIFT dash · LMB/J attack · aim DOWN+attack = POGO · G ghost"),
-    el("div", "sel-hint hint-3", "ESC pause · R restart · F fullscreen · M sound · O settings · E edit · N new level · DEL delete custom"),
+    line("hint-1", "[Arrows] choose  [Enter] or click to play  [Tab] world  [B] flip to the B-side"),
+    line("hint-2", "[RMB] [E] grapple  [Space] release or jump  [Shift] dash  [LMB] [J] attack  aim down and attack to pogo  [G] ghost"),
+    line("hint-3", "[Esc] pause  [R] restart  [F] fullscreen  [M] sound  [O] settings  [E] edit  [N] new level  [Del] delete custom"),
   );
 }
 
@@ -378,15 +376,15 @@ function buildConfirm() {
   confirmEl.replaceChildren();
   const box = el("div", "sel-confirm-box");
   box.append(
-    el("div", "sel-confirm-title", `DELETE "${L.name}"?`),
-    el("div", "sel-confirm-sub", "removes the level AND its times/ranks/ghosts — no undo"),
+    el("div", "sel-confirm-title", `Delete “${displayName(L.name)}”?`),
+    el("div", "sel-confirm-sub", "This removes the level and its times, ranks and ghosts. It can’t be undone."),
   );
   const row = el("div", "sel-confirm-row");
   const del = btn("sel-confirm-btn danger", { action: "delyes", arg: st.confirm });
-  del.textContent = "DELETE";
+  del.textContent = "Delete";
   const keep = btn("sel-confirm-btn", { action: "delno" });
-  keep.textContent = "KEEP (Esc)";
-  row.append(del, keep);
+  keep.textContent = "Keep it";
+  row.append(keep, del);
   box.appendChild(row);
   confirmEl.appendChild(box);
   confirmEl.style.display = "flex";

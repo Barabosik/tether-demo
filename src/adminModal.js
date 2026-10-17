@@ -2,6 +2,7 @@ import { normalizeLevelData, publishLevel, deleteCustomLevelRow, fetchCustomLeve
 import { PROTECTED_IDS } from "./levels.js";
 import { onScreen, currentScreen, emit, on as busOn, setModalOpen } from "./uiBus.js";
 import { ensureUiRoot } from "./uiRoot.js";
+import { icon } from "./icons.js";
 
 /* Admin gear button + modal, independent of the canvas/game loop. Interop:
  * screen changes arrive on the uiBus; "Enter Map Editor" is emitted back as
@@ -52,10 +53,10 @@ let manageListEl = null;
 let manageStatusEl = null;
 async function refreshManage() {
   if (!manageListEl) return;
-  manageListEl.textContent = "loading…";
+  manageListEl.textContent = "Loading…";
   const rows = await fetchCustomLevelRows();
   manageListEl.textContent = "";
-  if (!rows.length) { manageListEl.textContent = "no online levels yet."; return; }
+  if (!rows.length) { manageListEl.textContent = "No online levels yet."; return; }
   for (const row of rows) {
     const id = row.level_data?.id || "?";
     const isOverride = PROTECTED_IDS.has(id);
@@ -71,11 +72,12 @@ async function refreshManage() {
     const del = document.createElement("button");
     del.type = "button";
     del.className = "admin-del-btn";
-    del.textContent = "✕";
+    del.setAttribute("aria-label", "Delete");
+    del.appendChild(icon("x"));
     del.title = isOverride ? "Delete override (revert to the shipped level)" : "Delete this online level";
     let armed = false;
     del.addEventListener("click", async () => {
-      if (!armed) { armed = true; del.textContent = "sure?"; setTimeout(() => { armed = false; del.textContent = "✕"; }, 2600); return; }
+      if (!armed) { armed = true; del.textContent = "Sure?"; setTimeout(() => { armed = false; del.replaceChildren(icon("x")); }, 2600); return; }
       del.disabled = true;
       try {
         await deleteCustomLevelRow(row.id);
@@ -104,11 +106,12 @@ function buildModal() {
   header.className = "lb-header";
   const title = document.createElement("div");
   title.className = "lb-section-title";
-  title.textContent = "Admin Panel";
+  title.textContent = "Admin panel";
   const close = document.createElement("button");
   close.type = "button";
   close.className = "lb-close";
-  close.textContent = "✕";
+  close.setAttribute("aria-label", "Close");
+  close.appendChild(icon("x"));
   close.addEventListener("click", () => toggleModal(false));
   header.append(title, close);
 
@@ -118,7 +121,7 @@ function buildModal() {
   const editorBtn = document.createElement("button");
   editorBtn.type = "button";
   editorBtn.className = "admin-action-btn";
-  editorBtn.textContent = "Enter Map Editor";
+  editorBtn.textContent = "Open the map editor";
   editorBtn.addEventListener("click", () => {
     toggleModal(false);
     emit("action", { action: "editor-new" }); // handled by game.js (uiBus reducer)
@@ -126,7 +129,7 @@ function buildModal() {
 
   const manageTitle = document.createElement("div");
   manageTitle.className = "lb-section-title admin-upload-title";
-  manageTitle.textContent = "Online Levels";
+  manageTitle.textContent = "Online levels";
   manageListEl = document.createElement("div");
   manageListEl.className = "admin-level-list";
   manageStatusEl = document.createElement("div");
@@ -134,7 +137,7 @@ function buildModal() {
 
   const uploadTitle = document.createElement("div");
   uploadTitle.className = "lb-section-title admin-upload-title";
-  uploadTitle.textContent = "Upload Level";
+  uploadTitle.textContent = "Upload level";
 
   const nameInput = document.createElement("input");
   nameInput.type = "text";
@@ -148,7 +151,7 @@ function buildModal() {
 
   const textarea = document.createElement("textarea");
   textarea.className = "admin-json-textarea";
-  textarea.placeholder = "…or paste level JSON here";
+  textarea.placeholder = "Or paste level JSON here";
   textarea.rows = 8;
 
   const statusEl = document.createElement("div");
@@ -157,7 +160,7 @@ function buildModal() {
   const uploadBtn = document.createElement("button");
   uploadBtn.type = "button";
   uploadBtn.className = "admin-action-btn";
-  uploadBtn.textContent = "Upload Level";
+  uploadBtn.textContent = "Upload level";
   uploadBtn.addEventListener("click", () => handleUpload(nameInput, textarea, statusEl));
 
   fileInput.addEventListener("change", () => {
@@ -192,8 +195,9 @@ function buildButton() {
   const btn = document.createElement("button");
   btn.id = "admin-open-btn";
   btn.type = "button";
-  btn.title = "Admin Panel";
-  btn.textContent = "⚙️";
+  btn.title = "Admin panel";
+  btn.setAttribute("aria-label", "Admin panel");
+  btn.appendChild(icon("gear"));
   btn.addEventListener("click", () => toggleModal());
   ensureUiRoot().appendChild(btn);
   btnEl = btn;

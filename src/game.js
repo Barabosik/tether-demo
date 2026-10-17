@@ -228,9 +228,9 @@ export function startGame(canvas) {
   if (st.screen === "intro") startIntro(st); // the boot title (real players only)
 
   const bgGrad = ctx.createLinearGradient(0, 0, 0, C.VIEW_H);
-  bgGrad.addColorStop(0, "#16101f");
-  bgGrad.addColorStop(0.55, "#191322");
-  bgGrad.addColorStop(1, "#0d0a13");
+  bgGrad.addColorStop(0, "#151c19");
+  bgGrad.addColorStop(0.55, "#121715");
+  bgGrad.addColorStop(1, "#0d110f");
   const vignette = ctx.createRadialGradient(
     C.VIEW_W / 2, C.VIEW_H / 2, C.VIEW_H * 0.35,
     C.VIEW_W / 2, C.VIEW_H / 2, C.VIEW_H * 0.85
@@ -1490,8 +1490,8 @@ export function startGame(canvas) {
       for (const m of st.dust) {
         const sx = m.x - st.cam.x * m.z, sy = m.y - st.cam.y * m.z;
         if (sx < -4 || sx > W + 4 || sy < -4 || sy > H + 4) continue;
-        ctx.globalAlpha = 0.22 + 0.2 * Math.sin(t * 1.6 + m.t);
-        ctx.fillStyle = "#b89ccc";
+        ctx.globalAlpha = 0.16 + 0.14 * Math.sin(t * 1.6 + m.t);
+        ctx.fillStyle = "#9fc7b8";
         ctx.fillRect(sx, sy, m.s, m.s);
       }
       ctx.globalAlpha = 1;
@@ -1531,12 +1531,12 @@ export function startGame(canvas) {
       // on select the DOM account chip owns the top-right corner — duck under it
       const fy = st.screen === "select" ? 56 : 24;
       ctx.textAlign = "right";
-      ctx.font = "12px ui-monospace, Menlo, monospace";
-      ctx.fillStyle = "rgba(200,170,220,0.7)";
-      ctx.fillText(`${Math.round(st.fps)} FPS · sim ${C.PHYSICS_HZ} Hz`, W - 14, fy);
+      ctx.font = "12px Public Sans, system-ui, sans-serif";
+      ctx.fillStyle = "rgba(154,162,155,0.75)";
+      ctx.fillText(`${Math.round(st.fps)} fps · sim ${C.PHYSICS_HZ} Hz`, W - 14, fy);
       if (isMuted()) {
-        ctx.fillStyle = "rgba(255,180,84,0.6)";
-        ctx.fillText("MUTED · M", W - 14, fy + 16);
+        ctx.fillStyle = "rgba(228,225,211,0.7)";
+        ctx.fillText("Muted · M", W - 14, fy + 16);
       }
     }
 
@@ -1649,7 +1649,7 @@ export function startGame(canvas) {
       drawStarPath(ctx, 0, 0, 5, 17, 8);
       ctx.fill();
       ctx.restore();
-      ctx.font = "bold 12px ui-monospace, Menlo, monospace";
+      ctx.font = "bold 12px Public Sans, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(255,209,102,0.8)";
       ctx.fillText("GOAL", g.x + g.w / 2, g.y - 10);
@@ -1672,8 +1672,8 @@ export function startGame(canvas) {
     ctx.textAlign = "center";
     for (const h of st.hints) {
       const { x: hax, y: hy, text: txt, big } = h;
-      ctx.font = big ? "bold 14px ui-monospace, Menlo, monospace"
-                     : "13px ui-monospace, Menlo, monospace";
+      ctx.font = big ? "600 14px Public Sans, system-ui, sans-serif"
+                     : "13px Public Sans, system-ui, sans-serif";
       const half = ctx.measureText(txt).width / 2 + (big ? 12 : 4);
       let hx = hax;
       const visible = hax + half > st.cam.x && hax - half < st.cam.x + W;
@@ -1681,20 +1681,16 @@ export function startGame(canvas) {
         hx = clamp(hax, st.cam.x + half + 6, st.cam.x + W - half - 6);
       if (big) {
         const bob = Math.sin(t * 2 + hax * 0.01) * 2;
-        ctx.fillStyle = "rgba(12,8,18,0.62)";
-        rr(ctx, hx - half, hy + bob - 16, half * 2, 24, 7);
+        ctx.fillStyle = "rgba(18,23,21,0.82)";
+        rr(ctx, hx - half, hy + bob - 17, half * 2, 26, 4);
         ctx.fill();
-        ctx.strokeStyle = "rgba(255,209,102,0.35)";
-        ctx.lineWidth = 1;
-        rr(ctx, hx - half, hy + bob - 16, half * 2, 24, 7);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(255,233,201,0.92)";
+        ctx.fillStyle = "#e4e1d3";
         ctx.fillText(txt, hx, hy + bob);
       } else {
         // soft shadow separates faint text from bright platform-edge pixels
         ctx.shadowColor = "rgba(0,0,0,0.9)";
         ctx.shadowBlur = 4;
-        ctx.fillStyle = "rgba(216,196,232,0.44)";
+        ctx.fillStyle = "rgba(228,225,211,0.5)";
         ctx.fillText(txt, hx, hy);
         ctx.shadowBlur = 0;
       }
@@ -1882,23 +1878,23 @@ export function startGame(canvas) {
     // (hud.js, synced per frame from frame()). The canvas keeps the juice:
     // split flash, boss/reaper bars, toast, style meter, death overlay.
     ctx.textAlign = "left";
-    ctx.font = "bold 13px ui-monospace, Menlo, monospace";
+    ctx.font = "bold 13px Public Sans, system-ui, sans-serif";
     // live split delta — lap-timer green/red vs the PB run's pace
     if (st.splitFlash) {
       const f = st.splitFlash;
       const a = Math.min(1, f.t);
       let text, col;
-      if (f.delta == null) { text = `SPLIT ${f.k + 1}  —`; col = `rgba(200,180,220,${a})`; }
+      if (f.delta == null) { text = `Split ${f.k + 1}  –`; col = `rgba(201,200,188,${a})`; }
       else {
         const sign = f.delta >= 0 ? "+" : "−";
-        text = `SPLIT ${f.k + 1}  ${sign}${Math.abs(f.delta).toFixed(2)}`;
-        col = f.delta < 0 ? `rgba(125,255,200,${a})` : `rgba(255,107,107,${a})`;
+        text = `Split ${f.k + 1}  ${sign}${Math.abs(f.delta).toFixed(2)}`;
+        col = f.delta < 0 ? `rgba(134,189,92,${a})` : `rgba(224,114,90,${a})`;
       }
       ctx.save();
-      ctx.font = "bold 14px ui-monospace, Menlo, monospace";
+      ctx.font = "600 14px Public Sans, system-ui, sans-serif";
       ctx.fillStyle = col;
-      if (f.gold) { ctx.shadowColor = "#ffd166"; ctx.shadowBlur = 10; }
-      ctx.fillText(text + (f.gold ? " ★" : ""), 240, 78);
+      ctx.shadowColor = "rgba(0,0,0,0.7)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+      ctx.fillText(text + (f.gold ? "  best segment" : ""), 240, 78);
       ctx.restore();
     }
     drawKeeperHud(ctx, st);
@@ -1911,9 +1907,9 @@ export function startGame(canvas) {
     if (st.toast) {
       ctx.save();
       ctx.textAlign = "center";
-      ctx.font = "bold 20px ui-monospace, Menlo, monospace";
-      ctx.fillStyle = `rgba(140,242,255,${Math.min(1, st.toast.t)})`;
-      ctx.shadowColor = "#8CF2FF"; ctx.shadowBlur = 14;
+      ctx.font = "600 19px Public Sans, system-ui, sans-serif";
+      ctx.fillStyle = `rgba(228,225,211,${Math.min(1, st.toast.t)})`;
+      ctx.shadowColor = "rgba(0,0,0,0.75)"; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
       ctx.fillText(st.toast.text, C.VIEW_W / 2, 130);
       ctx.restore();
     }
@@ -1931,15 +1927,14 @@ export function startGame(canvas) {
       ctx.save();
       ctx.textAlign = "right";
       ctx.fillStyle = col;
-      ctx.shadowColor = col;
-      ctx.shadowBlur = 14;
-      ctx.font = `bold ${Math.round(26 * pop)}px ui-monospace, Menlo, monospace`;
+      ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+      ctx.font = `800 ${Math.round(30 * pop)}px Big Shoulders, Arial Narrow, sans-serif`;
       ctx.fillText(label, rx, 108);
-      ctx.shadowBlur = 0;
-      ctx.font = `bold ${Math.round(46 * pop)}px ui-monospace, Menlo, monospace`;
-      ctx.fillText(`×${st.style.count}`, rx, 156);
+      ctx.font = `800 ${Math.round(58 * pop)}px Big Shoulders, Arial Narrow, sans-serif`;
+      ctx.fillText(`×${st.style.count}`, rx, 160);
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       const frac = clamp(st.style.timer / C.STYLE_WINDOW, 0, 1);
-      ctx.fillStyle = "rgba(255,255,255,0.14)";
+      ctx.fillStyle = "rgba(13,17,15,0.6)";
       rr(ctx, rx - 150, 172, 150, 6, 3); ctx.fill();
       ctx.fillStyle = col;
       rr(ctx, rx - 150, 172, Math.max(2, 150 * frac), 6, 3); ctx.fill();
@@ -1952,12 +1947,9 @@ export function startGame(canvas) {
       ctx.fillStyle = `rgba(20,4,8,${0.35 * (1 - a * 0.4)})`;
       ctx.fillRect(0, 0, W, H);
       ctx.textAlign = "center";
-      ctx.fillStyle = `rgba(255,100,100,${Math.min(1, (1 - a) * 3)})`;
-      ctx.shadowColor = "#ff5050";
-      ctx.shadowBlur = 24;
-      ctx.font = "bold 44px ui-monospace, Menlo, monospace";
-      ctx.fillText("SHATTERED", W / 2, H / 2 - 8);
-      ctx.shadowBlur = 0;
+      ctx.fillStyle = `rgba(229,115,95,${Math.min(1, (1 - a) * 3)})`;
+      ctx.font = "800 76px Big Shoulders, Arial Narrow, sans-serif";
+      ctx.fillText("SHATTERED", W / 2, H / 2 + 6);
     }
   }
 
@@ -2054,9 +2046,9 @@ export function startGame(canvas) {
     ];
     ctx.save();
     ctx.setTransform(view.scale, 0, 0, view.scale, 0, 0);
-    ctx.fillStyle = "rgba(8,5,14,0.85)";
+    ctx.fillStyle = "rgba(13,17,15,0.88)";
     ctx.fillRect(C.VIEW_W - 300, 48, 288, 14 * lines.length + 14);
-    ctx.font = "11px ui-monospace, Menlo, monospace";
+    ctx.font = "11px Public Sans, system-ui, sans-serif";
     ctx.textAlign = "left";
     ctx.fillStyle = "#a0ffa0";
     lines.forEach((l, i) => ctx.fillText(l, C.VIEW_W - 290, 64 + i * 14));

@@ -4,6 +4,8 @@ import { fetchAchievements } from "./achievements.js";
 import { onScreen, on as busOn, setModalOpen } from "./uiBus.js";
 import { ensureUiRoot } from "./uiRoot.js";
 import { WORLD_NAME } from "./worlds.js";
+import { icon } from "./icons.js";
+import { displayName } from "./util.js";
 
 /* Trophy button + modal, independent of the canvas/game loop. Screen
  * visibility arrives via the uiBus; level/PB data still reads
@@ -48,7 +50,7 @@ function updatePaginationUI() {
   paginationEl.style.display = tab === "scores" && total ? "flex" : "none";
   if (!total) return;
   pageIndex = Math.max(0, Math.min(total - 1, pageIndex));
-  pageLabelEl.textContent = `${LEVELS[pageIndex]?.name || "Level"} · ${pageIndex + 1}/${total}`;
+  pageLabelEl.textContent = `${displayName(LEVELS[pageIndex]?.name || "Level")} · ${pageIndex + 1}/${total}`;
   prevBtnEl.disabled = pageIndex === 0;
   nextBtnEl.disabled = pageIndex === total - 1;
 }
@@ -75,7 +77,7 @@ function renderBests() {
   updatePaginationUI();
   const LEVELS = window.__levels || [];
   bodyEl.replaceChildren();
-  if (!LEVELS.length) { bodyEl.replaceChildren(emptyEl("no levels loaded")); return; }
+  if (!LEVELS.length) { bodyEl.replaceChildren(emptyEl("No levels loaded.")); return; }
   const campaign = LEVELS.filter((l) => !l.bside);
   const worlds = [...new Set(campaign.map((l) => l.worldId || 1))].sort((a, b) => a - b);
   let cleared = 0;
@@ -85,16 +87,16 @@ function renderBests() {
     const row = document.createElement("div");
     row.className = "lb-row";
     row.append(
-      span(rk ? `lb-grade lb-grade-${rk}` : "lb-grade lb-grade-none", rk || "·"),
-      span("lb-name", l.name),
-      span(best ? "lb-time" : "lb-time lb-time-none", best ? fmtSec(best) : "—"),
+      span(rk ? `lb-grade lb-grade-${rk}` : "lb-grade lb-grade-none", rk || "–"),
+      span("lb-name", displayName(l.name)),
+      span(best ? "lb-time" : "lb-time lb-time-none", best ? fmtSec(best) : "Not cleared"),
     );
     return row;
   };
   for (const w of worlds) {
     const title = document.createElement("div");
     title.className = "lb-section-title";
-    title.textContent = WORLD_NAME[w] || `WORLD ${w}`;
+    title.textContent = WORLD_NAME[w] || `World ${w}`;
     bodyEl.appendChild(title);
     for (const l of campaign.filter((l) => (l.worldId || 1) === w)) bodyEl.appendChild(rowFor(l));
   }
@@ -104,7 +106,7 @@ function renderBests() {
   if (clearedBsides.length) {
     const title = document.createElement("div");
     title.className = "lb-section-title";
-    title.textContent = "SECRETS";
+    title.textContent = "Secrets";
     bodyEl.appendChild(title);
     for (const l of clearedBsides) bodyEl.appendChild(rowFor(l));
   }
@@ -123,20 +125,20 @@ function gotoPage(delta) {
 
 async function renderScores() {
   const LEVELS = window.__levels;
-  if (!LEVELS || !LEVELS.length) { bodyEl.replaceChildren(emptyEl("no levels loaded")); return; }
+  if (!LEVELS || !LEVELS.length) { bodyEl.replaceChildren(emptyEl("No levels loaded.")); return; }
   pageIndex = Math.max(0, Math.min(LEVELS.length - 1, pageIndex));
   const level = LEVELS[pageIndex];
   updatePaginationUI();
 
-  bodyEl.replaceChildren(emptyEl("loading…"));
+  bodyEl.replaceChildren(emptyEl("Loading…"));
   const rows = await fetchLeaderboard(level.id);
   bodyEl.replaceChildren();
   const title = document.createElement("div");
   title.className = "lb-section-title";
-  title.textContent = level.name;
+  title.textContent = displayName(level.name);
   bodyEl.appendChild(title);
   if (!rows.length) {
-    bodyEl.appendChild(emptyEl(`no scores yet for ${level.name}`));
+    bodyEl.appendChild(emptyEl(`No scores yet for ${displayName(level.name)}.`));
     return;
   }
   rows.forEach((r, i) => {
@@ -153,11 +155,11 @@ async function renderScores() {
 
 async function renderAchievements() {
   updatePaginationUI();
-  bodyEl.replaceChildren(emptyEl("loading…"));
+  bodyEl.replaceChildren(emptyEl("Loading…"));
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) { bodyEl.replaceChildren(emptyEl("log in to see your achievements")); return; }
+  if (!user) { bodyEl.replaceChildren(emptyEl("Sign in to see your achievements.")); return; }
   const rows = await fetchAchievements();
-  if (!rows.length) { bodyEl.replaceChildren(emptyEl("no achievements yet")); return; }
+  if (!rows.length) { bodyEl.replaceChildren(emptyEl("No achievements yet.")); return; }
   bodyEl.replaceChildren();
   rows.forEach((r) => {
     const row = document.createElement("div");
@@ -196,7 +198,7 @@ function buildModal() {
   const tabs = document.createElement("div");
   tabs.className = "lb-tabs";
   tabButtons = [
-    { tab: "bests", label: "Best Times" },
+    { tab: "bests", label: "Best times" },
     { tab: "scores", label: "Online" },
     { tab: "achievements", label: "Achievements" },
   ].map((t) => {
@@ -212,7 +214,8 @@ function buildModal() {
   const close = document.createElement("button");
   close.type = "button";
   close.className = "lb-close";
-  close.textContent = "✕";
+  close.setAttribute("aria-label", "Close");
+  close.appendChild(icon("x"));
   close.addEventListener("click", () => toggleModal(false));
 
   header.append(tabs, close);
@@ -225,14 +228,16 @@ function buildModal() {
   const prevBtn = document.createElement("button");
   prevBtn.type = "button";
   prevBtn.className = "lb-page-btn";
-  prevBtn.textContent = "‹";
+  prevBtn.setAttribute("aria-label", "Previous level");
+  prevBtn.appendChild(icon("chevronLeft"));
   prevBtn.addEventListener("click", () => gotoPage(-1));
   const pageLabel = document.createElement("span");
   pageLabel.className = "lb-page-label";
   const nextBtn = document.createElement("button");
   nextBtn.type = "button";
   nextBtn.className = "lb-page-btn";
-  nextBtn.textContent = "›";
+  nextBtn.setAttribute("aria-label", "Next level");
+  nextBtn.appendChild(icon("chevronRight"));
   nextBtn.addEventListener("click", () => gotoPage(1));
   pagination.append(prevBtn, pageLabel, nextBtn);
 
@@ -263,8 +268,9 @@ function buildButton() {
   const btn = document.createElement("button");
   btn.id = "lb-open-btn";
   btn.type = "button";
-  btn.title = "Leaderboard & Achievements";
-  btn.textContent = "🏆";
+  btn.title = "Leaderboard and achievements";
+  btn.setAttribute("aria-label", "Leaderboard and achievements");
+  btn.appendChild(icon("trophy"));
   btn.addEventListener("click", () => toggleModal());
   ensureUiRoot().appendChild(btn);
   btnEl = btn;

@@ -482,7 +482,7 @@ export function drawReaperHud(ctx, st) {
   ctx.fillRect(x, y, w, 10);
   ctx.fillStyle = reaperExposed(e) ? "#ffd166" : (e.corrupted ? "#e0304a" : "#ff4d6d");
   ctx.fillRect(x, y, w * clamp(e.hp / e.maxHp, 0, 1), 10);
-  ctx.font = "bold 11px ui-monospace, Menlo, monospace";
+  ctx.font = "bold 11px Public Sans, system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.fillStyle = "#f2ccd6";
   ctx.fillText(`THE REAPER — ${["", "I", "II", "III"][bossPhase(e)]}`, W / 2, y + 24);

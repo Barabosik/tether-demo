@@ -204,11 +204,11 @@ export const CONFIG = {
   // --- Style meter (rewards airborne chaining) --------------------------------
   STYLE_WINDOW: 2.4,      // seconds a combo survives without a new action
   STYLE_RANKS: [          // [minCount, label, color]
-    [2, "NICE", "#cfe3ff"],
-    [4, "STYLISH", "#8CF2FF"],
-    [7, "WILD", "#ffd166"],
-    [10, "SAVAGE", "#ff8a5d"],
-    [14, "UNTETHERED", "#ff4fa0"],
+    [2, "NICE", "#e4e1d3"],
+    [4, "STYLISH", "#9fc7b8"],
+    [7, "WILD", "#e3cf5c"],
+    [10, "SAVAGE", "#e6912c"],
+    [14, "UNTETHERED", "#e5735f"],
   ],
 
   // --- Dynamic terrain (see src/platforms.js) ---------------------------------

@@ -1,5 +1,6 @@
 import { CONFIG as C } from "./config.js";
-import { fmtTime } from "./util.js";
+import { fmtTime, displayName } from "./util.js";
+import { icon, hintLine } from "./icons.js";
 import { WORLD_NAME } from "./worlds.js";
 import { drawWanderer } from "./wanderer.js";
 import { LEVELS } from "./levels.js";
@@ -38,7 +39,8 @@ function el(tag, cls, txt) {
   return e;
 }
 function btn(cls, target, label) {
-  const b = el("button", cls, label);
+  const b = el("button", cls, typeof label === "string" ? label : null);
+  if (Array.isArray(label)) b.append(...label);
   b.type = "button";
   b.tabIndex = -1;
   b._target = target;
@@ -127,25 +129,33 @@ function makePanel(id) {
   return p;
 }
 
+// the shared back button label: "Back  [Esc]"
+function backLabel() {
+  const k = document.createElement("kbd");
+  k.textContent = "Esc";
+  return ["Back", k];
+}
+
 // ---- PAUSED -----------------------------------------------------------------
 let pause = null;
 function buildPause() {
   const r = pause.root;
   r.replaceChildren();
-  r.appendChild(el("div", "pan-title", "PAUSED"));
+  r.appendChild(el("div", "pan-title", "Paused"));
   const list = el("div", "pan-list");
+  const onOff = (on) => el("span", "pan-state", on ? "on" : "off");
   list.append(
-    btn("pan-btn", { action: "resume" }, "RESUME"),
-    btn("pan-btn", { action: "restart" }, "RESTART LEVEL"),
-    btn("pan-btn", { action: "select" }, "LEVEL SELECT"),
-    btn("pan-btn", { action: "settings" }, "SETTINGS"),
-    btn("pan-btn", { action: "fs" },
-      document.fullscreenElement ? "FULLSCREEN: ON" : "FULLSCREEN: OFF"),
-    btn("pan-btn", { action: "mute" },
-      isMuted() ? "SOUND: OFF (M)" : "SOUND: ON (M)"),
+    btn("pan-btn", { action: "resume" }, "Resume"),
+    btn("pan-btn", { action: "restart" }, "Restart level"),
+    btn("pan-btn", { action: "select" }, "Level select"),
+    btn("pan-btn", { action: "settings" }, "Settings"),
+    btn("pan-btn", { action: "fs" }, ["Fullscreen", onOff(!!document.fullscreenElement)]),
+    btn("pan-btn", { action: "mute" }, ["Sound", onOff(!isMuted())]),
   );
   r.appendChild(list);
-  r.appendChild(el("div", "pan-hint", "ESC/⌫ resumes"));
+  const hint = el("div", "pan-hint");
+  hint.appendChild(hintLine("[Esc] or [Backspace] resumes \u2003[M] sound"));
+  r.appendChild(hint);
   pause.collect();
 }
 
@@ -156,18 +166,20 @@ function buildResults() {
   const r = results.root;
   r.replaceChildren();
 
-  if (st.practiceRun)
-    r.appendChild(el("div", "res-practice",
-      "PRACTICE RUN — nothing saved · replay for a real attempt"));
-  r.appendChild(el("div", "res-title", st.altExit ? "SECRET CLEAR" : "LEVEL CLEAR"));
+  if (st.practiceRun) {
+    const pr = el("div", "res-practice");
+    pr.append(icon("flag"), "Practice run. Nothing saved, replay for a real attempt.");
+    r.appendChild(pr);
+  }
+  r.appendChild(el("div", "res-title", st.altExit ? "Secret clear" : "Level clear"));
   r.appendChild(el("div", "res-time", fmtTime(st.runTime)));
-  if (st.newBest) r.appendChild(el("div", "res-newbest", "★ NEW BEST ★"));
+  if (st.newBest) r.appendChild(el("div", "res-newbest", "New best"));
   else if (st.bests[st.levelIndex])
     r.appendChild(el("div", "res-prevbest", `best ${fmtTime(st.bests[st.levelIndex])}`));
   const chain = st.style.best >= 2 ? ` · best chain ×${st.style.best}` : "";
-  const coins = st.coins.length ? ` · ◆ ${st.coinCount}/${st.coins.length}` : "";
-  r.appendChild(el("div", "res-stats", `falls ${st.deaths} · kills ${st.kills}${chain}${coins}`));
-  if (st.altExit) r.appendChild(el("div", "res-alt", "— SECRET EXIT ROUTE —"));
+  const coins = st.coins.length ? ` · coins ${st.coinCount}/${st.coins.length}` : "";
+  r.appendChild(el("div", "res-stats", `Falls ${st.deaths} · kills ${st.kills}${chain}${coins}`));
+  if (st.altExit) r.appendChild(el("div", "res-alt", "Secret exit route"));
 
   // rank panel: both axes with their published thresholds + the seal
   const par = effPar(LEVELS[st.levelIndex]);
@@ -188,33 +200,36 @@ function buildResults() {
     a.appendChild(el("div", "res-axis-note", note));
     return a;
   };
-  rankRow.appendChild(axis("SPEED", sg, speedThresholds(par), `your time ${fmtTime(st.runTime)}`));
+  rankRow.appendChild(axis("Speed", sg, speedThresholds(par), `Your time ${fmtTime(st.runTime)}`));
   const seal = el("div", "res-seal");
   const sealG = el("div", "res-seal-grade", rank);
   sealG.style.color = GRADE_COLOR[rank];
-  sealG.style.setProperty("--seal-glow", GRADE_COLOR[rank]);
-  seal.append(sealG, el("div", "res-seal-note", "worse axis wins"));
+  seal.append(sealG, el("div", "res-seal-note", "The worse axis wins"));
   rankRow.appendChild(seal);
-  rankRow.appendChild(axis("CLEAN", cg, CLEAN_THRESHOLDS, `${st.hits} hit${st.hits === 1 ? "" : "s"} taken`));
+  rankRow.appendChild(axis("Clean", cg, CLEAN_THRESHOLDS, `${st.hits} hit${st.hits === 1 ? "" : "s"} taken`));
   r.appendChild(rankRow);
 
   // splits table (levels with split gates): segment · cum · Δ vs PB · gold
   if (st.finalSegs && st.finalSegs.cums.length > 1) {
     const F = st.finalSegs;
     const tbl = el("div", "res-splits");
-    tbl.appendChild(el("div", "res-splits-title", "SPLITS  vs PB"));
+    tbl.appendChild(el("div", "res-splits-title", "Splits vs PB"));
     const rows = Math.min(F.cums.length, 9);
     for (let i = 0; i < rows; i++) {
       const row = el("div", "res-split");
-      row.appendChild(el("span", "rs-name", i === F.cums.length - 1 ? "FIN" : `S${i + 1}`));
+      row.appendChild(el("span", "rs-name", i === F.cums.length - 1 ? "Fin" : `S${i + 1}`));
       row.appendChild(el("span", "rs-cum", fmtTime(F.cums[i])));
       if (F.pb?.[i] != null) {
         const d = F.cums[i] - F.pb[i];
         row.appendChild(el("span", d < 0 ? "rs-delta ahead" : "rs-delta behind",
           `${d < 0 ? "−" : "+"}${Math.abs(d).toFixed(2)}`));
       } else row.appendChild(el("span", "rs-delta none", "—"));
-      if (F.golds?.[i] != null && F.segs[i] < F.golds[i])
-        row.appendChild(el("span", "rs-gold", "★"));
+      if (F.golds?.[i] != null && F.segs[i] < F.golds[i]) {
+        const gold = el("span", "rs-gold");
+        gold.appendChild(icon("sparkle"));
+        gold.title = "Best segment";
+        row.appendChild(gold);
+      }
       tbl.appendChild(row);
     }
     r.appendChild(tbl);
@@ -226,9 +241,9 @@ function buildResults() {
   for (let j = st.levelIndex + 1; j < LEVELS.length; j++)
     if (!LEVELS[j].bside && (LEVELS[j].worldId || 1) === wid) { next = j; break; }
   const list = el("div", "pan-list res-list");
-  if (next >= 0) list.appendChild(btn("pan-btn res-btn", { action: "next", arg: next }, "NEXT →"));
-  list.appendChild(btn("pan-btn res-btn", { action: "restart" }, "REPLAY"));
-  list.appendChild(btn("pan-btn res-btn", { action: "select" }, "SELECT"));
+  if (next >= 0) list.appendChild(btn("pan-btn res-btn", { action: "next", arg: next }, ["Next level", icon("arrowRight")]));
+  list.appendChild(btn("pan-btn res-btn", { action: "restart" }, "Replay"));
+  list.appendChild(btn("pan-btn res-btn", { action: "select" }, "Level select"));
   r.appendChild(list);
   results.collect();
 }
@@ -242,12 +257,12 @@ function buildLineResults() {
   r.replaceChildren();
   if (!d) return;
 
-  r.appendChild(el("div", "lr-title", "THE LINE — COMPLETE"));
+  r.appendChild(el("div", "lr-title", "The line, complete"));
   r.appendChild(el("div", "lr-sub",
-    `${WORLD_NAME[d.world] || `WORLD ${d.world}`} · ${d.splits.length} levels · one clock`));
+    `${WORLD_NAME[d.world] || `World ${d.world}`} · ${d.splits.length} levels · one clock`));
   const clock = el("div", d.newBest ? "lr-clock best" : "lr-clock", fmtTime(d.total));
   r.appendChild(clock);
-  if (d.newBest) r.appendChild(el("div", "lr-newbest", "★ NEW BEST LINE"));
+  if (d.newBest) r.appendChild(el("div", "lr-newbest", "New best line"));
   r.appendChild(el("div", "lr-deaths", `${d.deaths} fall${d.deaths === 1 ? "" : "s"} along the way`));
 
   const tbl = el("div", "lr-splits");
@@ -255,8 +270,9 @@ function buildLineResults() {
   d.splits.forEach((s, i) => {
     cum += s.t;
     const row = el("div", "lr-split");
-    row.appendChild(el("span", "lr-name", `${i + 1}· ${s.name}`));
-    row.appendChild(el("span", s.deaths ? "lr-dead" : "lr-clean", s.deaths ? `${s.deaths}×✝` : "clean"));
+    row.appendChild(el("span", "lr-name", `${i + 1}  ${displayName(s.name)}`));
+    row.appendChild(el("span", s.deaths ? "lr-dead" : "lr-clean",
+      s.deaths ? `${s.deaths} fall${s.deaths === 1 ? "" : "s"}` : "clean"));
     row.appendChild(el("span", "lr-t", fmtTime(s.t)));
     row.appendChild(el("span", "lr-cum", fmtTime(cum)));
     tbl.appendChild(row);
@@ -265,8 +281,8 @@ function buildLineResults() {
 
   const list = el("div", "pan-list lr-list");
   list.append(
-    btn("pan-btn lr-btn", { action: "line", arg: d.world }, "RUN IT AGAIN"),
-    btn("pan-btn lr-btn", { action: "select" }, "LEVEL SELECT"),
+    btn("pan-btn lr-btn", { action: "line", arg: d.world }, "Run it again"),
+    btn("pan-btn lr-btn", { action: "select" }, "Level select"),
   );
   r.appendChild(list);
   lineres.collect();
@@ -285,15 +301,11 @@ function skinSwatch(p, open) {
   cv.width = 44; cv.height = 44; // 22×32 wanderer + room for the glow/halo
   cv.className = "sk-swatch-cv";
   const g = cv.getContext("2d");
-  // a soft accent backdrop — the dark cloak reads on the dark panel, and each
-  // skin shows a hint of its own color even before you equip it
+  // a flat disc in the skin's own color — the dark cloak reads on the dark
+  // panel, and each skin shows a hint of its color before you equip it
   if (open) {
-    const acc = p.ready || p.body;
-    const bg = g.createRadialGradient(22, 21, 1, 22, 21, 22);
-    bg.addColorStop(0, acc + "3a"); // ~0.23 alpha (8-digit hex)
-    bg.addColorStop(1, acc + "00");
-    g.fillStyle = bg;
-    g.beginPath(); g.arc(22, 21, 22, 0, Math.PI * 2); g.fill();
+    g.fillStyle = (p.ready || p.body) + "2e"; // ~0.18 alpha (8-digit hex)
+    g.beginPath(); g.arc(22, 22, 19, 0, Math.PI * 2); g.fill();
   }
   g.save();
   if (!open) g.globalAlpha = 0.3;
@@ -316,8 +328,8 @@ function buildSkins() {
   const get = saveReader(LEVELS);
   const un = unlockedPalettes(get);
 
-  r.appendChild(el("div", "pan-title sk-title", "SKINS"));
-  r.appendChild(el("div", "sk-sub", "cosmetic player tints — unlocked by playing"));
+  r.appendChild(el("div", "pan-title sk-title", "Skins"));
+  r.appendChild(el("div", "sk-sub", "Cosmetic player tints, unlocked by playing"));
 
   // live progress for the two counting conditions (B-sides excluded)
   const ids = get("ids") || [], worlds = get("worlds") || [], bs = get("bsides") || [];
@@ -340,17 +352,22 @@ function buildSkins() {
     const sw = skinSwatch(p, open);
     if (open) row.dataset.gi = String(i); // grid index — drives 2D arrow nav
     const text = el("span", "sk-text");
-    text.appendChild(el("span", "sk-name", p.name));
-    text.appendChild(el("span", open ? "sk-need open" : "sk-need",
-      open ? (p.need ? `unlocked — ${p.need}` : "always unlocked")
-        : `🔒 ${p.need}${progress[p.id] ? `   (${progress[p.id]})` : ""}`));
+    text.appendChild(el("span", "sk-name", displayName(p.name)));
+    const need = el("span", open ? "sk-need open" : "sk-need");
+    if (open) need.textContent = p.need ? `Unlocked · ${p.need}` : "Always unlocked";
+    else need.append(icon("lock"), `${p.need}${progress[p.id] ? ` (${progress[p.id]})` : ""}`);
+    text.appendChild(need);
     row.append(sw, text);
-    if (st.paletteIndex === i) row.appendChild(el("span", "sk-equipped", "EQUIPPED ✓"));
+    if (st.paletteIndex === i) {
+      const eq = el("span", "sk-equipped");
+      eq.append(icon("check"), "Equipped");
+      row.appendChild(eq);
+    }
     grid.appendChild(row);
   });
   r.appendChild(grid);
 
-  const back = btn("pan-btn pan-back", { action: "select" }, "BACK (Esc/⌫)");
+  const back = btn("pan-btn pan-back", { action: "select" }, backLabel());
   const backWrap = el("div", "pan-list sk-back");
   backWrap.appendChild(back);
   r.appendChild(backWrap);
@@ -367,27 +384,30 @@ function buildSecrets() {
   const get = saveReader(LEVELS);
   const bsides = LEVELS.map((l, i) => [l, i]).filter(([l]) => l.bside);
 
-  r.appendChild(el("div", "pan-title sc-title", "SECRETS"));
-  r.appendChild(el("div", "sk-sub", "hidden B-sides — earn the condition to unlock the level"));
+  r.appendChild(el("div", "pan-title sc-title", "Secrets"));
+  r.appendChild(el("div", "sk-sub", "Hidden B-sides. Meet the condition to unlock the level."));
 
   const list = el("div", "sc-list");
-  if (!bsides.length) list.appendChild(el("div", "sc-empty", "no B-sides in this build"));
+  if (!bsides.length) list.appendChild(el("div", "sc-empty", "No B-sides in this build yet."));
   for (const [l, idx] of bsides) {
     const u = bsideUnlock(l, get);
     const row = u.open
       ? btn("sc-row", { action: "secretplay", arg: idx })
       : el("div", "sc-row locked");
     const glyph = el("span", u.open ? "sc-diamond" : "sc-diamond locked");
-    glyph.style.setProperty("--tint", l.tint || "#ff4fa0");
     const text = el("span", "sc-text");
-    text.appendChild(el("span", "sc-name", u.open ? l.name : "? ? ?"));
-    text.appendChild(el("span", u.open ? "sc-cond open" : "sc-cond",
-      u.open ? `UNLOCKED — ${l.tag}` : `🔒 ${u.label}`));
+    text.appendChild(el("span", "sc-name", u.open ? displayName(l.name) : "Unknown B-side"));
+    const cond = el("span", u.open ? "sc-cond open" : "sc-cond");
+    if (u.open) cond.textContent = `Unlocked · ${l.tag}`;
+    else cond.append(icon("lock"), u.label);
+    text.appendChild(cond);
     const right = el("span", "sc-right");
     right.appendChild(el("span", "sc-progress", u.progress));
     if (u.open) {
       const best = Number(lsGet("tether.best." + l.id)) || 0;
-      right.appendChild(el("span", "sc-play", best ? `★ ${fmtTime(best)}  PLAY` : "PLAY"));
+      const play = el("span", "sc-play");
+      play.append(best ? `${fmtTime(best)} \u00b7 Play` : "Play", icon("play", { fill: true }));
+      right.appendChild(play);
     }
     row.append(glyph, text, right);
     list.appendChild(row);
@@ -395,7 +415,7 @@ function buildSecrets() {
   r.appendChild(list);
 
   const backWrap = el("div", "pan-list sc-back");
-  backWrap.appendChild(btn("pan-btn pan-back", { action: "select" }, "BACK (Esc/⌫)"));
+  backWrap.appendChild(btn("pan-btn pan-back", { action: "select" }, backLabel()));
   r.appendChild(backWrap);
   secrets.collect();
 }
@@ -411,13 +431,14 @@ function buildSettings() {
   const r = settingsP.root;
   r.replaceChildren();
 
-  r.appendChild(el("div", "pan-title set-title", "SETTINGS"));
-  r.appendChild(el("div", "sk-sub",
-    "everything saves instantly — sliders: ←/→ or click · keys: ENTER, then press the new key"));
+  r.appendChild(el("div", "pan-title set-title", "Settings"));
+  const sub = el("div", "sk-sub");
+  sub.appendChild(hintLine("Everything saves instantly. Sliders: [\u2190] [\u2192] or click. Keys: [Enter], then press the new key."));
+  r.appendChild(sub);
 
   // ---------------- left column
   const left = el("div", "set-col set-left");
-  left.appendChild(el("div", "set-head", "AUDIO & FEEL"));
+  left.appendChild(el("div", "set-head", "Audio and feel"));
   for (const [key, label] of SET.SLIDERS) {
     const v = SET.SETTINGS[key];
     const row = btn("set-row set-slider", { action: "slider", arg: key });
@@ -433,66 +454,67 @@ function buildSettings() {
   { // launch-fullscreen toggle (applies on the session's FIRST input)
     const on = SET.SETTINGS.autofs >= 0.5;
     const row = btn("set-row set-toggle", { action: "toggle", arg: "autofs" });
-    row.appendChild(el("span", "set-label", "LAUNCH FULLSCREEN"));
+    row.appendChild(el("span", "set-label", "Launch fullscreen"));
     row.appendChild(el("span", on ? "set-state on" : "set-state off",
-      on ? "ON — first input" : "OFF"));
+      on ? "On, at first input" : "Off"));
     left.appendChild(row);
   }
-  left.appendChild(btn("set-row set-reset", { action: "setreset" }, "RESET AUDIO & FEEL"));
+  left.appendChild(btn("set-row set-reset", { action: "setreset" }, "Reset audio and feel"));
 
   { // gamepad: every detected device; headphones/remotes enumerate too —
     // auto-pick skips them, this shows why
     const devs = padList();
     left.appendChild(el("div", "set-head set-padhead",
-      `GAMEPAD${devs.length ? ` (${devs.length} device${devs.length > 1 ? "s" : ""})` : ""}`));
+      `Gamepad${devs.length ? ` (${devs.length} device${devs.length > 1 ? "s" : ""})` : ""}`));
     if (!devs.length)
       left.appendChild(el("div", "set-padnote",
-        "none detected — PRESS ANY BUTTON on the controller to wake it"));
+        "None detected. Press any button on the controller to wake it."));
     for (const d of devs.slice(0, 3)) {
       if (d.usable) {
         const row = btn("set-row set-pad" + (d.active ? " active" : ""), { action: "padpick", arg: d.id });
         row.appendChild(el("span", "set-padname",
-          `${d.active ? "▶ USING " : ""}${d.id.slice(0, d.active ? 30 : 38)}`));
-        row.appendChild(el("span", "set-padinfo", `${d.buttons}btn/${d.axes}ax${d.chosen ? " ★" : ""}`));
+          `${d.active ? "Using " : ""}${d.id.slice(0, d.active ? 30 : 38)}`));
+        row.appendChild(el("span", "set-padinfo", `${d.buttons} btn / ${d.axes} ax${d.chosen ? " · picked" : ""}`));
         left.appendChild(row);
       } else {
         const row = el("div", "set-pad dead");
-        row.appendChild(el("span", "set-padname", `✕ ${d.id.slice(0, 30)}`));
-        row.appendChild(el("span", "set-padinfo", `${d.buttons}btn/${d.axes}ax — not a controller`));
+        row.appendChild(el("span", "set-padname", d.id.slice(0, 30)));
+        row.appendChild(el("span", "set-padinfo", `${d.buttons} btn / ${d.axes} ax · not a controller`));
         left.appendChild(row);
       }
     }
     if (padChoice()) {
-      const auto = btn("set-row set-autopick", { action: "padpick", arg: null }, "back to AUTO pick");
+      const auto = btn("set-row set-autopick", { action: "padpick", arg: null }, "Back to automatic pick");
       left.appendChild(auto);
     }
-    left.appendChild(el("div", "set-padhint",
-      "Ⓐ/LB jump · Ⓑ/LT dash · Ⓧ/RB attack · Ⓨ/RT grapple · R-stick aim"));
-    left.appendChild(el("div", "set-padhint",
-      "shoulders = thumbs stay on sticks · START pause · BACK restart"));
+    const ph1 = el("div", "set-padhint");
+    ph1.appendChild(hintLine("[A] [LB] jump \u2002[B] [LT] dash \u2002[X] [RB] attack \u2002[Y] [RT] grapple"));
+    const ph2 = el("div", "set-padhint");
+    ph2.appendChild(hintLine("Right stick aims \u2002[Start] pause \u2002[Back] restart"));
+    left.append(ph1, ph2);
   }
   r.appendChild(left);
 
   // ---------------- right column: key bindings
   const right = el("div", "set-col set-right");
   const head = el("div", "set-head");
-  head.append(el("span", null, "CONTROLS"),
-    el("span", "set-headnote", "mouse stays: LMB attack · RMB grapple"));
+  head.append(el("span", null, "Controls"),
+    el("span", "set-headnote", "The mouse stays: left click attacks, right click grapples"));
   right.appendChild(head);
   for (const [action, label] of SET.REBINDABLE) {
     const waiting = st.rebind === action;
     const row = btn("set-row set-key" + (waiting ? " waiting" : ""), { action: "rebind", arg: action });
     row.appendChild(el("span", "set-label", label));
     row.appendChild(el("span", waiting ? "set-bind waiting" : "set-bind",
-      waiting ? "PRESS A KEY… (ESC cancels)" : SET.bindingLabel(action)));
+      waiting ? "Press a key, Esc cancels" : SET.bindingLabel(action)));
     right.appendChild(row);
   }
-  right.appendChild(btn("set-row set-reset", { action: "keyreset" }, "RESET ALL KEYS"));
+  right.appendChild(btn("set-row set-reset", { action: "keyreset" }, "Reset all keys"));
   if (st.rebindMsg) right.appendChild(el("div", "set-rebindmsg", st.rebindMsg));
   r.appendChild(right);
 
   const backWrap = el("div", "pan-list set-back");
-  backWrap.appendChild(btn("pan-btn pan-back", { action: "setback" }, "BACK (Esc/⌫)"));
+  backWrap.appendChild(btn("pan-btn pan-back", { action: "setback" }, backLabel()));
   r.appendChild(backWrap);
   settingsP.collect();
 }

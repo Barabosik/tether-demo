@@ -42,8 +42,7 @@ export function drawBossIntro(ctx, st) {
   const slide = (1 - clamp(t / 0.5, 0, 1)) * 14; // a small settle from below
   ctx.globalAlpha = a;
   ctx.fillStyle = bi.accent;
-  ctx.shadowColor = bi.accent; ctx.shadowBlur = 28;
-  ctx.font = "800 46px ui-monospace, Menlo, monospace";
+  ctx.font = "800 64px Big Shoulders, Arial Narrow, sans-serif";
   ctx.fillText(bi.name, W / 2, cy - 2 + slide);
   ctx.shadowBlur = 0;
   const lw = clamp((t - 0.25) / 0.5, 0, 1) * 230 * a;
@@ -51,9 +50,9 @@ export function drawBossIntro(ctx, st) {
   ctx.beginPath(); ctx.moveTo(W / 2 - lw, cy + 12); ctx.lineTo(W / 2 + lw, cy + 12); ctx.stroke();
   if (bi.title) {
     ctx.globalAlpha = a;
-    ctx.font = "500 15px ui-monospace, Menlo, monospace";
-    ctx.fillStyle = "rgba(228,234,244,0.85)";
-    ctx.fillText(bi.title.toUpperCase(), W / 2, cy + 34);
+    ctx.font = "600 15px Public Sans, system-ui, sans-serif";
+    ctx.fillStyle = "rgba(228,225,211,0.85)";
+    ctx.fillText(bi.title, W / 2, cy + 36);
   }
   ctx.restore();
   ctx.globalAlpha = 1; ctx.shadowBlur = 0;

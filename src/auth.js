@@ -1,5 +1,11 @@
 import { supabase } from "./supabaseClient.js";
 import { onScreen } from "./uiBus.js";
+import { icon } from "./icons.js";
+
+// the chip: user icon, a label, a dropdown chevron
+function setChip(label) {
+  chipEl.replaceChildren(icon("user"), document.createTextNode(label), icon("chevronDown"));
+}
 
 /* Account chip + dropdown, independent of the canvas/game loop. Mounted
  * INSIDE #wrap: that is the element toggleFullscreen() fullscreens, so
@@ -26,13 +32,14 @@ function buildPanel() {
   const chip = document.createElement("button");
   chip.id = "auth-chip";
   chip.type = "button";
-  chip.textContent = "👤 SIGN IN ▾";
+  chip.setAttribute("aria-label", "Account");
   chip.addEventListener("click", (e) => {
     e.stopPropagation();
     panelEl.classList.toggle("open");
   });
   mount.appendChild(chip);
   chipEl = chip;
+  setChip("Sign in");
   document.addEventListener("mousedown", (e) => {
     if (panelEl && panelEl.classList.contains("open") &&
         !panelEl.contains(e.target) && e.target !== chip)
@@ -47,7 +54,7 @@ function buildPanel() {
 
   const logout = document.createElement("button");
   logout.type = "button";
-  logout.textContent = "Logout";
+  logout.textContent = "Sign out";
   logout.addEventListener("click", handleLogout);
 
   const form = document.createElement("div");
@@ -98,10 +105,10 @@ function buildPanel() {
 
 function renderMode() {
   usernameInput.style.display = mode === "register" ? "block" : "none";
-  submitBtn.textContent = mode === "register" ? "Register" : "Login";
+  submitBtn.textContent = mode === "register" ? "Create account" : "Sign in";
   toggleLink.textContent = mode === "register"
-    ? "Already have an account? Login"
-    : "Need an account? Register";
+    ? "Already have an account? Sign in"
+    : "Need an account? Create one";
 }
 
 function showError(msg) {
@@ -136,14 +143,14 @@ function renderAuthState(session) {
   const user = session?.user;
   if (user) {
     const name = user.user_metadata?.username || user.email;
-    chipEl.textContent = `👤 ${name} ▾`;
+    setChip(name);
     chipEl.classList.add("authed");
     statusEl.textContent = `Logged in as ${name}`;
     statusEl.style.display = "block";
     logoutBtn.style.display = "block";
     formEl.style.display = "none";
   } else {
-    chipEl.textContent = "👤 SIGN IN ▾";
+    setChip("Sign in");
     chipEl.classList.remove("authed");
     statusEl.style.display = "none";
     logoutBtn.style.display = "none";

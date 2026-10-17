@@ -26,8 +26,8 @@ export function drawIntro(ctx, st) {
 
   drawDawn(ctx, fade);
   drawMotes(ctx, f.field, fade);
-  drawWordmark(ctx, H * 0.46, fade);
-  // the prompt — pulsing (also the invitation to the first gesture)
-  const pr = fade * (0.4 + 0.3 * Math.sin(t * 3));
-  drawTitleLine(ctx, "press anything to begin", H * 0.46 + 44, pr, 15);
+  drawWordmark(ctx, H * 0.5, fade);
+  // the prompt — a slow breath (also the invitation to the first gesture)
+  const pr = fade * (0.75 + 0.25 * Math.sin(t * 2));
+  drawTitleLine(ctx, "Press any key to begin", H * 0.5 + 48, pr, 16);
 }

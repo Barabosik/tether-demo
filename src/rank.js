@@ -14,7 +14,7 @@
  * Palettes are cosmetic player tints, chosen on the select screen. */
 
 export const GRADES = ["S", "A", "B", "C"];
-export const GRADE_COLOR = { S: "#ffd166", A: "#8CF2FF", B: "#a0ffa0", C: "#c9b8d8" };
+export const GRADE_COLOR = { S: "#e3cf5c", A: "#9fc7b8", B: "#b0c48a", C: "#9aa29b" };
 
 // published thresholds — these EXACT strings render on the results screen
 export const SPEED_RULE = [
@@ -71,29 +71,29 @@ export const PALETTES = [
   { id: "ice", name: "FROST", body: "#8CF2FF", ready: "#8CF2FF", dash: "#ffffff",
     need: "S-rank any level", fx: { shape: "shard", trail: "box", tier: 1 } },
   { id: "rose", name: "BLOOM", body: "#ff8ac0", ready: "#ff8ac0", dash: "#ffe0f0",
-    need: "all coins in any level", fx: { shape: "petal", trail: "box", tier: 2 } },
+    need: "All coins in any level", fx: { shape: "petal", trail: "box", tier: 2 } },
   { id: "coin50", name: "MIDAS", body: "#ffe08a", ready: "#fff3c4", dash: "#fff8dc",
-    need: "collect 12 total coins", fx: { shape: "star", trail: "streak", tier: 2 } },
+    need: "Collect 12 total coins", fx: { shape: "star", trail: "streak", tier: 2 } },
   { id: "sworld1", name: "APEX", body: "#7dffc8", ready: "#7dffc8", dash: "#ffffff",
-    need: "S-rank all of THE SUNKEN SHALLOWS", fx: { shape: "streak", trail: "streak", tier: 2 } },
+    need: "S-rank all of The Sunken Shallows", fx: { shape: "streak", trail: "streak", tier: 2 } },
   { id: "void", name: "VOID", body: "#c99aff", ready: "#c99aff", dash: "#e8d8ff",
-    need: "silence THE REAPER", fx: { shape: "smoke", trail: "echo", tier: 3 } },
+    need: "Silence the Reaper", fx: { shape: "smoke", trail: "echo", tier: 3 } },
   { id: "gold", name: "GILDED", body: "#ffd166", ready: "#fff3c4", dash: "#ffffff",
     need: "S-rank every level", fx: { shape: "star", trail: "echo", tier: 3 } },
   // W2 rewards — APPENDED (tether.palette saves the INDEX; inserting
   // mid-array would silently re-skin every existing save)
   { id: "sworld2", name: "LANTERN", body: "#d89040", ready: "#f2b166", dash: "#fff1dc",
-    need: "S-rank all of THE MINES", fx: { shape: "ember", trail: "streak", tier: 2 } },
+    need: "S-rank all of The Mines", fx: { shape: "ember", trail: "streak", tier: 2 } },
   { id: "brand", name: "BRAND", body: "#ff6a45", ready: "#ffb454", dash: "#ffd9a0",
-    need: "fell BAPHOMET", fx: { shape: "ember", trail: "echo", tier: 3 } },
+    need: "Fell Baphomet", fx: { shape: "ember", trail: "echo", tier: 3 } },
   // W3 rewards
   { id: "sworld3", name: "MOLTEN", body: "#ff5a3d", ready: "#ff8a5a", dash: "#ffd9c0",
-    need: "S-rank all of THE INFERNO", fx: { shape: "shard", trail: "streak", tier: 2 } },
+    need: "S-rank all of The Inferno", fx: { shape: "shard", trail: "streak", tier: 2 } },
   { id: "serpent", name: "ASH", body: "#9a8578", ready: "#ff8a5a", dash: "#ffd9c0",
-    need: "sink the LEVIATHAN", fx: { shape: "smoke", trail: "streak", tier: 3 } },
+    need: "Sink the Leviathan", fx: { shape: "smoke", trail: "streak", tier: 3 } },
   // The all-S capstone: a living-aurora accent + halo (special: "prism").
   { id: "paragon", name: "PARAGON", body: "#fff0c0", ready: "#ffffff", dash: "#ffffff",
-    need: "S-rank every level — total mastery", special: "prism",
+    need: "S-rank every level, total mastery", special: "prism",
     fx: { shape: "star", trail: "echo", tier: 3 } },
 ];
 

@@ -104,3 +104,9 @@ export function drawDiamondPath(ctx, cx, cy, r) {
   ctx.lineTo(cx - r, cy);
   ctx.closePath();
 }
+
+// display casing for names stored in caps ("THE FIRST ARC" → "The First Arc"):
+// proper-name title case, small joining words stay lower after the first word
+const MINOR = new Set(["a", "an", "and", "at", "by", "for", "in", "of", "on", "or", "the", "to"]);
+export const displayName = (s) => String(s ?? "").toLowerCase().replace(/[a-z0-9][^\s-]*/g,
+  (w, i) => (i > 0 && MINOR.has(w) ? w : w[0].toUpperCase() + w.slice(1)));

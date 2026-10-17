@@ -510,7 +510,7 @@ export function drawEnemies(ctx, st, alpha, pcx, pcy) {
       const a = clamp(e.alertT / 0.45, 0, 1);
       ctx.globalAlpha = a;
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 16px ui-monospace, Menlo, monospace";
+      ctx.font = "bold 16px Public Sans, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("!", ex, ey - e.r - 14 - (1 - a) * 8);
       ctx.globalAlpha = 1;

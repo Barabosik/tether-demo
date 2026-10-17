@@ -8,6 +8,7 @@ import { drawNodes } from "./combat.js";
 import { drawEnemies } from "./enemies.js";
 import { drawDecorLayer, DECOR_TYPES } from "./decor.js";
 import { sfx } from "./audio.js";
+import { ICON_PATHS } from "./icons.js";
 import { normalizeLevelData, publishLevel, isAdminSession } from "./customLevels.js";
 import { newFragId, drawFragment, FRAG_SKINS } from "./fragments.js";
 import { drawNpcs, newNpcId } from "./npc.js";
@@ -81,18 +82,18 @@ const TOOL_META = {
   pot:     ["Clutter", "⌂", "Destructible pot / crate / shard"],
 };
 const CATEGORIES = [
-  ["Terrain",   "#7ce0a0", ["plat", "crumble", "mover", "path", "oneway"]],
-  ["Hazards",   "#ff6b6b", ["spike", "saw", "pendulum", "crusher", "laser"]],
-  ["Traversal", "#8CF2FF", ["anchor", "zip", "sling", "grip", "node", "pad", "grav", "wind"]],
-  ["Enemies",   "#ff9d5c", ["drone", "dart", "ward", "bloom", "wisp", "keeper", "reaper"]],
-  ["Pickups",   "#ffd166", ["coin", "gate", "valve", "plate"]],
-  ["Meta",      "#c99aff", ["frag", "miner", "harm", "split", "secret", "exit", "hint", "decor", "pot"]],
+  ["Terrain",   "#86bd5c", ["plat", "crumble", "mover", "path", "oneway"]],
+  ["Hazards",   "#e0725a", ["spike", "saw", "pendulum", "crusher", "laser"]],
+  ["Traversal", "#9fc7b8", ["anchor", "zip", "sling", "grip", "node", "pad", "grav", "wind"]],
+  ["Enemies",   "#e6912c", ["drone", "dart", "ward", "bloom", "wisp", "keeper", "reaper"]],
+  ["Pickups",   "#e3cf5c", ["coin", "gate", "valve", "plate"]],
+  ["Meta",      "#b9b2a0", ["frag", "miner", "harm", "split", "secret", "exit", "hint", "decor", "pot"]],
 ];
 const catOfTool = (key) => CATEGORIES.find(([, , ks]) => ks.includes(key));
-const ANNOT_COLOR = "#63d0e0"; // editor-only annotation ink — never in-game
+const ANNOT_COLOR = "#9fc7b8"; // editor-only annotation ink — never in-game
 
 const LAYERS = ["bg", "game", "trig"];
-const LAYER_NAME = { bg: "BG", game: "GAME", trig: "TRIG" };
+const LAYER_NAME = { bg: "Background", game: "Game", trig: "Triggers" };
 const DEFAULT_LAYER = { decor: "bg", hints: "bg", triggers: "trig" };
 const layerOfArr = (arr) => DEFAULT_LAYER[arr] || "game";
 const effLayer = (arr, r) => (r && r.layer) || layerOfArr(arr);
@@ -151,7 +152,7 @@ export function editorInit(hooks) {
 export const editorActive = () => ed.active;
 
 const blankLevel = () => ({
-  id: "untitled", order: 999, name: "UNTITLED", tag: "custom", tint: "#8CF2FF",
+  id: "untitled", order: 999, name: "UNTITLED", tag: "custom", tint: "#9fc7b8",
   world: { w: 2400, h: 1150 }, par: 120,
   spawn: { x: 160, y: 1000 - C.PLAYER_H },
   goal: { x: 2160, y: 890, w: 110, h: 110 },
@@ -343,10 +344,10 @@ function ensureTextInput() {
   textInput.id = "tether-textedit";
   Object.assign(textInput.style, {
     position: "fixed", display: "none", zIndex: 30,
-    background: "#0d0916", color: "#ffe9c9",
-    border: "1px solid #8CF2FF", borderRadius: "4px",
-    padding: "4px 8px", font: "13px ui-monospace, Menlo, monospace",
-    outline: "none", boxShadow: "0 0 14px rgba(140,242,255,0.3)",
+    background: "#232c29", color: "#e4e1d3",
+    border: "1px solid #9fc7b8", borderRadius: "4px",
+    padding: "4px 8px", font: "13px Public Sans, system-ui, sans-serif",
+    outline: "none", boxShadow: "none",
     minWidth: "180px", textAlign: "center",
   });
   textInput.addEventListener("keydown", (e) => {
@@ -1150,7 +1151,7 @@ export function editorDraw(ctx, t, dt) {
   const W = C.VIEW_W, HH = C.VIEW_H;
   const d = ed.data, p = ed.preview;
 
-  ctx.fillStyle = "#151020";
+  ctx.fillStyle = "#121715";
   ctx.fillRect(0, 0, W, HH);
 
   ctx.save();
@@ -1158,13 +1159,13 @@ export function editorDraw(ctx, t, dt) {
   ctx.translate(-ed.camX, -ed.camY);
 
   // world bounds — the hard level border (resize via SET panel)
-  ctx.strokeStyle = "rgba(140,242,255,0.4)";
+  ctx.strokeStyle = "rgba(159,199,184,0.4)";
   ctx.lineWidth = 2.5 / ed.zoom;
   ctx.setLineDash([10 / ed.zoom, 6 / ed.zoom]);
   ctx.strokeRect(0, 0, d.world.w, d.world.h);
   ctx.setLineDash([]);
-  ctx.fillStyle = "rgba(140,242,255,0.5)";
-  ctx.font = `${12 / ed.zoom}px ui-monospace, Menlo, monospace`;
+  ctx.fillStyle = "rgba(159,199,184,0.5)";
+  ctx.font = `${12 / ed.zoom}px Public Sans, system-ui, sans-serif`;
   ctx.textAlign = "left";
   ctx.fillText(`${d.world.w} × ${d.world.h}`, 8 / ed.zoom, -8 / ed.zoom);
 
@@ -1196,7 +1197,7 @@ export function editorDraw(ctx, t, dt) {
     drawProps(ctx, stLike, t);
     if (ed.showAnnot) { // link labels — editor annotations, cyan + tagged
       ctx.fillStyle = ANNOT_COLOR;
-      ctx.font = `${11 / ed.zoom}px ui-monospace, Menlo, monospace`;
+      ctx.font = `${11 / ed.zoom}px Public Sans, system-ui, sans-serif`;
       ctx.textAlign = "left";
       for (const pr of stLike.props)
         if (pr.kind === "plate") ctx.fillText("⚙" + (pr.link || "g1"), pr.x, pr.y - 12 / ed.zoom);
@@ -1211,7 +1212,7 @@ export function editorDraw(ctx, t, dt) {
       drawHazards(ctx, hz, t);
       if (ed.showAnnot) { // spike variant badges (annotation ink)
         ctx.fillStyle = ANNOT_COLOR;
-        ctx.font = `${11 / ed.zoom}px ui-monospace, Menlo, monospace`;
+        ctx.font = `${11 / ed.zoom}px Public Sans, system-ui, sans-serif`;
         ctx.textAlign = "left";
         const spikesL = ed.data.spikes;
         for (let i = 0; i < spikesL.length; i++) {
@@ -1228,11 +1229,11 @@ export function editorDraw(ctx, t, dt) {
       const lw = 2.5 / Math.max(ed.zoom, 0.5);
       const hue = a.kind === "zip" ? "140,242,255" : a.kind === "sling" ? "255,92,160" : "255,209,102";
       if (a.kind === "zip") { // the rail the ring travels
-        ctx.strokeStyle = "rgba(140,242,255,0.35)"; ctx.lineWidth = lw;
+        ctx.strokeStyle = "rgba(159,199,184,0.35)"; ctx.lineWidth = lw;
         ctx.setLineDash([6, 8]);
         ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(a.x2 ?? a.x + 240, a.y2 ?? a.y); ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(140,242,255,0.7)"; // the end knob
+        ctx.fillStyle = "rgba(159,199,184,0.7)"; // the end knob
         ctx.beginPath(); ctx.arc(a.x2 ?? a.x + 240, a.y2 ?? a.y, 3, 0, Math.PI * 2); ctx.fill();
       }
       ctx.strokeStyle = `rgba(${hue},0.85)`; ctx.lineWidth = lw;
@@ -1277,7 +1278,7 @@ export function editorDraw(ctx, t, dt) {
         ctx.strokeRect(tr.x, tr.y, tr.w, tr.h);
         ctx.setLineDash([]);
         ctx.fillStyle = `rgba(${col},0.9)`;
-        ctx.font = `${12 / ed.zoom}px ui-monospace, Menlo, monospace`;
+        ctx.font = `${12 / ed.zoom}px Public Sans, system-ui, sans-serif`;
         ctx.textAlign = "left";
         ctx.fillText("⧉ " + tr.kind.toUpperCase(), tr.x + 4 / ed.zoom, tr.y + 14 / ed.zoom);
       }
@@ -1292,7 +1293,7 @@ export function editorDraw(ctx, t, dt) {
       rr(ctx, d.spawn.x, d.spawn.y, C.PLAYER_W, C.PLAYER_H, 6); ctx.fill();
       if (ed.showAnnot) { // SPAWN/GOAL captions are editor-only labels
         ctx.fillStyle = ANNOT_COLOR;
-        ctx.font = `${11 / ed.zoom}px ui-monospace, Menlo, monospace`;
+        ctx.font = `${11 / ed.zoom}px Public Sans, system-ui, sans-serif`;
         ctx.textAlign = "left";
         ctx.fillText("⌂ SPAWN", d.spawn.x - 6, d.spawn.y - 6 / ed.zoom);
         ctx.fillText("★ GOAL", d.goal.x, d.goal.y - 6 / ed.zoom);
@@ -1302,8 +1303,8 @@ export function editorDraw(ctx, t, dt) {
     // hints — the REAL in-game text, drawn exactly as the player sees it
     ctx.textAlign = "center";
     for (const h of p.hints.filter(inLayer("hints", L))) {
-      ctx.font = h.big ? "bold 14px ui-monospace, Menlo, monospace" : "13px ui-monospace, Menlo, monospace";
-      ctx.fillStyle = h.big ? "rgba(255,233,201,0.95)" : "rgba(216,196,232,0.6)";
+      ctx.font = h.big ? "bold 14px Public Sans, system-ui, sans-serif" : "13px Public Sans, system-ui, sans-serif";
+      ctx.fillStyle = h.big ? "rgba(228,225,211,0.95)" : "rgba(216,196,232,0.6)";
       ctx.fillText(h.text, h.x, h.y);
     }
     drawDecorLayer(ctx, p.decor.filter(inLayer("decor", L)), 1, t, d.tint);
@@ -1311,7 +1312,7 @@ export function editorDraw(ctx, t, dt) {
 
   // ---- selection: shared bbox + per-object outlines
   if (ed.sel.length) {
-    ctx.strokeStyle = "#8CF2FF";
+    ctx.strokeStyle = "#9fc7b8";
     ctx.lineWidth = 2 / ed.zoom;
     ctx.setLineDash([5 / ed.zoom, 4 / ed.zoom]);
     for (const s of ed.sel) {
@@ -1321,11 +1322,11 @@ export function editorDraw(ctx, t, dt) {
     ctx.setLineDash([]);
     const ub = unionBBox();
     if (ub && ed.sel.length > 1) {
-      ctx.strokeStyle = "rgba(140,242,255,0.6)";
+      ctx.strokeStyle = "rgba(159,199,184,0.6)";
       ctx.setLineDash([8 / ed.zoom, 6 / ed.zoom]);
       ctx.strokeRect(ub.x - 8, ub.y - 8, ub.w + 16, ub.h + 16);
       ctx.setLineDash([]);
-      ctx.fillStyle = "#8CF2FF"; // group handles (move anywhere inside)
+      ctx.fillStyle = "#9fc7b8"; // group handles (move anywhere inside)
       for (const [cx, cy] of [[ub.x - 8, ub.y - 8], [ub.x + ub.w + 8, ub.y - 8],
         [ub.x - 8, ub.y + ub.h + 8], [ub.x + ub.w + 8, ub.y + ub.h + 8]]) {
         const hs = 5 / ed.zoom;
@@ -1335,7 +1336,7 @@ export function editorDraw(ctx, t, dt) {
     const one = selOne();
     const bb = one && bboxOf(one);
     if (bb && bb.resizable) {
-      ctx.fillStyle = "#8CF2FF";
+      ctx.fillStyle = "#9fc7b8";
       for (const [cx, cy] of [[bb.x, bb.y], [bb.x + bb.w, bb.y], [bb.x, bb.y + bb.h], [bb.x + bb.w, bb.y + bb.h]]) {
         const hs = 5 / ed.zoom;
         ctx.fillRect(cx - hs, cy - hs, hs * 2, hs * 2);
@@ -1357,8 +1358,8 @@ export function editorDraw(ctx, t, dt) {
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(hx, hy); ctx.stroke();
         ctx.fillStyle = "#ffb454";
         ctx.beginPath(); ctx.arc(hx, hy, 7 / ed.zoom, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "rgba(255,233,201,0.9)";
-        ctx.font = `${11 / ed.zoom}px ui-monospace, Menlo, monospace`;
+        ctx.fillStyle = "rgba(228,225,211,0.9)";
+        ctx.font = `${11 / ed.zoom}px Public Sans, system-ui, sans-serif`;
         ctx.textAlign = "left";
         ctx.fillText(`${Math.round(info.r[info.field] || 0)}°`, hx + 10 / ed.zoom, hy);
       }
@@ -1369,8 +1370,8 @@ export function editorDraw(ctx, t, dt) {
         const px2 = r.path[i].x + (r.w || 0) / 2, py2 = r.path[i].y + (r.h || 0) / 2;
         ctx.fillStyle = ed.pathEdit ? "#ffd166" : "rgba(255,209,102,0.55)";
         ctx.beginPath(); ctx.arc(px2, py2, (ed.pathEdit ? 9 : 6) / ed.zoom, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#1b1220";
-        ctx.font = `bold ${10 / ed.zoom}px ui-monospace, Menlo, monospace`;
+        ctx.fillStyle = "#121715";
+        ctx.font = `bold ${10 / ed.zoom}px Public Sans, system-ui, sans-serif`;
         ctx.textAlign = "center";
         ctx.fillText(String(i + 1), px2, py2 + 3.5 / ed.zoom);
       }
@@ -1380,8 +1381,8 @@ export function editorDraw(ctx, t, dt) {
   // marquee
   if (ed.drag?.mode === "box") {
     const dr = ed.drag;
-    ctx.strokeStyle = "rgba(140,242,255,0.9)";
-    ctx.fillStyle = "rgba(140,242,255,0.08)";
+    ctx.strokeStyle = "rgba(159,199,184,0.9)";
+    ctx.fillStyle = "rgba(159,199,184,0.08)";
     ctx.lineWidth = 1.5 / ed.zoom;
     ctx.setLineDash([4 / ed.zoom, 4 / ed.zoom]);
     const x = Math.min(dr.x0, dr.x1), y = Math.min(dr.y0, dr.y1);
@@ -1394,24 +1395,46 @@ export function editorDraw(ctx, t, dt) {
   drawToolbar(ctx, t);
 }
 
-const MONO = "ui-monospace, Menlo, monospace";
+const MONO = "Public Sans, system-ui, sans-serif";
 const hexA = (hex, a) => {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
-// a labeled button; `accent` recolors the active/hover state (default cyan)
-function chip(ctx, x, y, w, h, label, on, fn, accent = "#8CF2FF") {
+// labels are authored in caps; the chrome shows them in sentence case
+// ("EDIT PATH (P)" → "Edit path (P)"), single-letter keys stay as written
+const sentence = (label) => {
+  const s = String(label).replace(/\b[A-Z][A-Z-]+\b/g, (w) => (w === "JSON" || w === "BG" ? w : w.toLowerCase()));
+  const i = s.search(/[a-zA-Z]/);
+  return i < 0 ? s : s.slice(0, i) + s[i].toUpperCase() + s.slice(i + 1);
+};
+
+// a labeled button; `accent` marks the active state (default jade)
+function chip(ctx, x, y, w, h, label, on, fn, accent = "#9fc7b8") {
   const hov = ed.mx >= x && ed.mx <= x + w && ed.my >= y && ed.my <= y + h;
-  ctx.fillStyle = on ? hexA(accent, 0.22) : hov ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.055)";
+  ctx.fillStyle = on ? hexA(accent, 0.24) : hov ? "#2c3733" : "#232c29";
   rr(ctx, x, y, w, h, 4); ctx.fill();
-  ctx.strokeStyle = on ? accent : hov ? hexA(accent, 0.6) : "rgba(140,110,160,0.3)";
-  ctx.lineWidth = on ? 1.5 : 1;
-  rr(ctx, x, y, w, h, 4); ctx.stroke();
-  ctx.fillStyle = on ? "#eaffff" : "#c9b8d8";
+  if (on) {
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 1.5;
+    rr(ctx, x + 0.75, y + 0.75, w - 1.5, h - 1.5, 3.5); ctx.stroke();
+  }
+  ctx.fillStyle = on || hov ? "#e4e1d3" : "#c9c8bc";
   ctx.textAlign = "center";
-  ctx.fillText(label, x + w / 2, y + h / 2 + 3.5);
+  ctx.fillText(sentence(label), x + w / 2, y + h / 2 + 3.5);
   ed.buttons.push({ x, y, w, h, fn });
+}
+
+// a stroked 24-unit icon path (icons.js) drawn at x,y with size px
+function canvasIcon(ctx, name, x, y, size, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 24, size / 24);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.9;
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.stroke(new Path2D(ICON_PATHS[name]));
+  ctx.restore();
 }
 
 // icon + label object-palette chip; registers ed.toolChips[key] + a hover tip
@@ -1419,17 +1442,19 @@ function toolChipDraw(ctx, x, y, w, h, key, accent) {
   const on = ed.tool === key;
   const [label, glyph, desc] = TOOL_META[key];
   const hov = ed.mx >= x && ed.mx <= x + w && ed.my >= y && ed.my <= y + h;
-  ctx.fillStyle = on ? hexA(accent, 0.22) : hov ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)";
+  ctx.fillStyle = on ? hexA(accent, 0.24) : hov ? "#2c3733" : "#232c29";
   rr(ctx, x, y, w, h, 4); ctx.fill();
-  ctx.strokeStyle = on ? accent : hov ? hexA(accent, 0.55) : "rgba(140,110,160,0.28)";
-  ctx.lineWidth = on ? 1.5 : 1;
-  rr(ctx, x, y, w, h, 4); ctx.stroke();
+  if (on) {
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 1.5;
+    rr(ctx, x + 0.75, y + 0.75, w - 1.5, h - 1.5, 3.5); ctx.stroke();
+  }
   ctx.fillStyle = on ? accent : hexA(accent, 0.85);
   ctx.font = `bold 13px ${MONO}`;
   ctx.textAlign = "center";
   ctx.fillText(glyph, x + 13, y + h / 2 + 4.5);
-  ctx.fillStyle = on ? "#eaffff" : "#cbbcd8";
-  ctx.font = `10px ${MONO}`;
+  ctx.fillStyle = on || hov ? "#e4e1d3" : "#c9c8bc";
+  ctx.font = `11px ${MONO}`;
   ctx.textAlign = "left";
   const lbl = key === "decor" ? `${label} ${DECOR_TYPES[ed.decorType].slice(0, 4)}` : label;
   ctx.fillText(lbl, x + 26, y + h / 2 + 3.5);
@@ -1449,58 +1474,56 @@ function drawToolbar(ctx, t) {
   const d = ed.data;
 
   // ============================ TOP BAR: status + file/view actions
-  ctx.fillStyle = "rgba(10,7,16,0.95)";
+  ctx.fillStyle = "rgba(18,23,21,0.97)";
   ctx.fillRect(0, 0, W, 30);
-  ctx.strokeStyle = "rgba(140,110,160,0.35)";
-  ctx.beginPath(); ctx.moveTo(0, 30); ctx.lineTo(W, 30); ctx.stroke();
   ctx.textAlign = "left";
-  ctx.font = `bold 11px ${MONO}`;
-  ctx.fillStyle = ed.dirty ? "#ffb454" : "rgba(210,190,230,0.85)";
-  ctx.fillText(`${d.id}${ed.dirty ? " ✱" : ""}`, 10, 19);
+  ctx.font = `600 12px ${MONO}`;
+  const idLabel = `${d.id}${ed.dirty ? " · unsaved" : ""}`;
+  ctx.fillStyle = ed.dirty ? "#e3cf5c" : "#e4e1d3";
+  ctx.fillText(idLabel, 10, 19);
+  const idW = ctx.measureText(idLabel).width;
   ctx.font = `11px ${MONO}`;
-  ctx.fillStyle = "rgba(180,160,205,0.7)";
-  ctx.fillText(`W${d.worldId || 1} · ${d.solids.length} solids · ${d.spikes.length} spikes · ${d.enemies.length} foes · sel ${ed.sel.length || "—"}`,
-    10 + ctx.measureText(`${d.id}${ed.dirty ? " ✱" : ""}`).width + 74, 19);
+  ctx.fillStyle = "rgba(154,162,155,0.9)";
+  ctx.fillText(`World ${d.worldId || 1} · ${d.solids.length} solids · ${d.spikes.length} spikes · ${d.enemies.length} foes · ${ed.sel.length || "none"} selected`,
+    10 + idW + 18, 19);
   // right-aligned action chips (file + view); lay out from the right edge
   const topActions = [
-    ["EXIT", () => { commitTextEdit(true); ed.active = false; H.exitToSelect(); }, "#ff9d5c"],
-    [ed.helpOpen ? "HELP ✕" : "HELP ?", () => (ed.helpOpen = !ed.helpOpen), "#8CF2FF"],
-    [`ANNOT ${ed.showAnnot ? "◉" : "◌"}`, () => (ed.showAnnot = !ed.showAnnot), "#63d0e0"],
-    ["EXPORT", exportJson, "#8CF2FF"],
-    ["IMPORT", importJson, "#8CF2FF"],
-    [ed.settingsOpen ? "SETTINGS ✕" : "SETTINGS", () => (ed.settingsOpen = !ed.settingsOpen), "#c99aff"],
-    ["PLAY ▶", startPlaytest, "#7ce0a0"],
-    ["SAVE-AS", () => saveLevel(true), "#ffd166"],
-    ["SAVE", () => saveLevel(false), "#ffd166"],
+    ["Exit", () => { commitTextEdit(true); ed.active = false; H.exitToSelect(); }, false],
+    ["Help", () => (ed.helpOpen = !ed.helpOpen), ed.helpOpen],
+    ["Labels", () => (ed.showAnnot = !ed.showAnnot), ed.showAnnot],
+    ["Export", exportJson, false],
+    ["Import", importJson, false],
+    ["Settings", () => (ed.settingsOpen = !ed.settingsOpen), ed.settingsOpen],
+    ["Play", startPlaytest, false],
+    ["Save as", () => saveLevel(true), false],
+    ["Save", () => saveLevel(false), false],
   ];
   // admin-only: pushes the level straight to Supabase (no export/re-import
   // round trip through the Admin Panel's Upload Level form)
-  if (isAdminSession) topActions.push(["PUBLISH", publishToSupabase, "#a0ffa0"]);
-  ctx.font = `bold 10px ${MONO}`;
+  if (isAdminSession) topActions.push(["Publish", publishToSupabase, false]);
+  ctx.font = `600 11px ${MONO}`;
   let ax = W - 8;
-  for (const [label, fn, accent] of topActions) {
-    const w = ctx.measureText(label).width + 16;
+  for (const [label, fn, on] of topActions) {
+    const w = ctx.measureText(label).width + 18;
     ax -= w;
-    chip(ctx, ax, 5, w, 20, label, false, fn, accent);
+    chip(ctx, ax, 5, w, 20, label, on, fn);
     ax -= 4;
   }
 
   // ============================ BOTTOM BAR: object palette (tabs + tools)
   const bar = 68, y0 = HH - bar;
-  ctx.fillStyle = "rgba(10,7,16,0.95)";
+  ctx.fillStyle = "rgba(18,23,21,0.97)";
   ctx.fillRect(0, y0, W, bar);
-  ctx.strokeStyle = "rgba(140,110,160,0.4)";
-  ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(W, y0); ctx.stroke();
 
   // row 0 — SELECT + category tabs
-  ctx.font = `bold 10px ${MONO}`;
+  ctx.font = `600 11px ${MONO}`;
   let x = 8;
-  chip(ctx, x, y0 + 5, 66, 20, "⌖ SELECT", ed.tool === "select", () => (ed.tool = "select"), "#8CF2FF");
+  chip(ctx, x, y0 + 5, 66, 20, "Select", ed.tool === "select", () => (ed.tool = "select"));
   ed.toolChips.select = { x, y: y0 + 5, w: 66, h: 20 };
   if (ed.mx >= x && ed.mx <= x + 66 && ed.my >= y0 + 5 && ed.my <= y0 + 25)
     ed.hoverTip = { x, y: y0 - 1, text: `Select — ${TOOL_META.select[2]}` };
   x += 72;
-  ctx.fillStyle = "rgba(140,110,160,0.4)";
+  ctx.fillStyle = "#2e3935";
   ctx.fillRect(x - 4, y0 + 6, 1, 18); // divider
   for (const [name, accent, keys] of CATEGORIES) {
     const w = 82;
@@ -1518,18 +1541,18 @@ function drawToolbar(ctx, t) {
     x += 122;
   }
   // view controls trail the tools (right side): snap dropdown, zoom, undo
-  const snapLbl = ed.snapMode === 0 ? "OFF" : ed.snapMode === 0.5 ? "½x" : ed.snapMode + "x";
+  const snapLbl = ed.snapMode === 0 ? "off" : ed.snapMode === 0.5 ? "0.5x" : ed.snapMode + "x";
   const viewCtl = [
-    [`SNAP ${snapLbl} ▾`, () => (ed.snapOpen = !ed.snapOpen), ed.snapOpen, "#8CF2FF", 78],
-    [`ZOOM ${ed.zoom.toFixed(2)}`, () => (ed.zoom = ed.zoom === 1 ? 0.5 : ed.zoom === 0.5 ? 0.25 : 1), false, "#8CF2FF", 78],
-    ["UNDO ⌘Z", doUndo, false, "#8CF2FF", 66],
+    [`Snap ${snapLbl}`, () => (ed.snapOpen = !ed.snapOpen), ed.snapOpen, "#9fc7b8", 78],
+    [`Zoom ${ed.zoom.toFixed(2)}`, () => (ed.zoom = ed.zoom === 1 ? 0.5 : ed.zoom === 0.5 ? 0.25 : 1), false, "#9fc7b8", 78],
+    ["Undo", doUndo, false, "#9fc7b8", 66],
   ];
   let vx = W - 8;
-  ctx.font = `bold 10px ${MONO}`;
+  ctx.font = `600 11px ${MONO}`;
   let snapChipX = 0;
   for (const [label, fn, on, acc, w] of viewCtl) {
     vx -= w;
-    if (label.startsWith("SNAP")) snapChipX = vx;
+    if (label.startsWith("Snap")) snapChipX = vx;
     chip(ctx, vx, y0 + 32, w, 24, label, !!on, fn, acc);
     vx -= 5;
   }
@@ -1540,7 +1563,7 @@ function drawToolbar(ctx, t) {
     for (let i = 0; i < opts.length; i++) {
       const oy = y0 - 4 - (opts.length - i) * (h + 3);
       const m = opts[i];
-      const lbl = m === 0 ? "OFF" : m === 0.5 ? "0.5x (10px)" : `${m}x (${GRID * m}px)`;
+      const lbl = m === 0 ? "Off" : m === 0.5 ? "0.5x (10px)" : `${m}x (${GRID * m}px)`;
       chip(ctx, snapChipX, oy, w, h, lbl, ed.snapMode === m, () => { ed.snapMode = m; ed.snapOpen = false; });
     }
   }
@@ -1555,8 +1578,8 @@ function drawToolbar(ctx, t) {
 
   if (ed.toastT > 0) {
     ctx.textAlign = "center";
-    ctx.font = `bold 14px ${MONO}`;
-    ctx.fillStyle = `rgba(255,233,201,${Math.min(1, ed.toastT)})`;
+    ctx.font = `600 14px ${MONO}`;
+    ctx.fillStyle = `rgba(228,225,211,${Math.min(1, ed.toastT)})`;
     ctx.fillText(ed.toastMsg, W / 2, y0 - 40);
   }
 }
@@ -1565,10 +1588,10 @@ function drawToolbar(ctx, t) {
 function drawEditorStatus(ctx, y0) {
   ctx.textAlign = "left";
   ctx.font = `11px ${MONO}`;
-  ctx.fillStyle = "rgba(180,160,205,0.75)";
+  ctx.fillStyle = "rgba(154,162,155,0.85)";
   ctx.fillText(
-    `${Math.round(ed.wx)}, ${Math.round(ed.wy)}${ed.snapMode ? " ▦" + snapStep() : ""} · ${ed.tool}` +
-    `${ed.pathEdit ? " · PATH EDIT" : ""}${ed.showAnnot ? "" : " · PREVIEW"}`, 10, y0 - 10);
+    `${Math.round(ed.wx)}, ${Math.round(ed.wy)}${ed.snapMode ? " · snap " + snapStep() : ""} · ${ed.tool}` +
+    `${ed.pathEdit ? " · path edit" : ""}${ed.showAnnot ? "" : " · preview"}`, 10, y0 - 10);
 }
 
 // tooltip for the hovered palette chip — floats above the bar
@@ -1578,57 +1601,50 @@ function drawHoverTip(ctx) {
   ctx.font = `11px ${MONO}`;
   const w = ctx.measureText(text).width + 16;
   const x = clamp(ed.hoverTip.x, 6, C.VIEW_W - w - 6), y = ed.hoverTip.y - 22;
-  ctx.fillStyle = "rgba(8,5,14,0.96)";
-  rr(ctx, x, y, w, 20, 5); ctx.fill();
-  ctx.strokeStyle = "rgba(140,242,255,0.5)";
-  ctx.lineWidth = 1;
-  rr(ctx, x, y, w, 20, 5); ctx.stroke();
-  ctx.fillStyle = "#dfeff5";
+  ctx.fillStyle = "#2c3733";
+  rr(ctx, x, y, w, 20, 4); ctx.fill();
+  ctx.fillStyle = "#e4e1d3";
   ctx.textAlign = "left";
   ctx.fillText(text, x + 8, y + 14);
 }
 
 // ---- layers: eye + lock affordances, an accent stripe on the active layer
-const LAYER_ACCENT = { bg: "#7d9bd0", game: "#8CF2FF", trig: "#c99aff" };
+const LAYER_ACCENT = { bg: "#8fa6b8", game: "#9fc7b8", trig: "#d1b77a" };
 function drawLayersPanel(ctx) {
   ctx.textAlign = "left";
-  ctx.font = `bold 10px ${MONO}`;
-  ctx.fillStyle = "rgba(180,160,205,0.6)";
-  ctx.fillText("LAYERS", 12, 50);
-  ctx.font = `9px ${MONO}`;
-  ctx.fillStyle = "rgba(150,130,175,0.6)";
-  ctx.fillText("1/2/3 active · ⇧ assign", 56, 50);
+  ctx.font = `600 11px ${MONO}`;
+  ctx.fillStyle = "#c9c8bc";
+  ctx.fillText("Layers", 12, 50);
+  ctx.font = `10px ${MONO}`;
+  ctx.fillStyle = "rgba(154,162,155,0.85)";
+  ctx.fillText("1/2/3 pick · shift assigns", 54, 50);
   let ly = 56;
   for (const L of LAYERS) {
     const s = ed.layers[L], active = ed.activeLayer === L, accent = LAYER_ACCENT[L];
     // row background + active accent stripe
-    ctx.fillStyle = active ? hexA(accent, 0.16) : "rgba(255,255,255,0.04)";
-    rr(ctx, 12, ly, 128, 22, 5); ctx.fill();
-    ctx.strokeStyle = active ? accent : "rgba(140,110,160,0.28)";
-    ctx.lineWidth = active ? 1.5 : 1;
-    rr(ctx, 12, ly, 128, 22, 5); ctx.stroke();
-    if (active) { ctx.fillStyle = accent; rr(ctx, 12, ly, 3, 22, 2); ctx.fill(); }
+    ctx.fillStyle = active ? hexA(accent, 0.2) : "rgba(35,44,41,0.92)";
+    rr(ctx, 12, ly, 128, 22, 4); ctx.fill();
+    if (active) {
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1.5;
+      rr(ctx, 12.75, ly + 0.75, 126.5, 20.5, 3.5); ctx.stroke();
+    }
     // eye toggle
     const eye = { x: 20, y: ly + 3, w: 22, h: 16 };
     const eyeHov = ed.mx >= eye.x && ed.mx <= eye.x + eye.w && ed.my >= eye.y && ed.my <= eye.y + eye.h;
     ctx.fillStyle = eyeHov ? "rgba(255,255,255,0.1)" : "transparent";
     if (eyeHov) { rr(ctx, eye.x, eye.y, eye.w, eye.h, 3); ctx.fill(); }
-    ctx.fillStyle = s.vis ? accent : "rgba(150,130,175,0.55)";
-    ctx.font = `12px ${MONO}`;
-    ctx.textAlign = "center";
-    ctx.fillText(s.vis ? "◉" : "◌", eye.x + eye.w / 2, ly + 15);
+    canvasIcon(ctx, s.vis ? "eye" : "eyeOff", eye.x + 4, ly + 4, 14, s.vis ? accent : "rgba(154,162,155,0.6)");
     ed.buttons.push({ ...eye, fn: () => (s.vis = !s.vis) });
     // lock toggle
     const lock = { x: 44, y: ly + 3, w: 22, h: 16 };
     const lockHov = ed.mx >= lock.x && ed.mx <= lock.x + lock.w && ed.my >= lock.y && ed.my <= lock.y + lock.h;
     if (lockHov) { ctx.fillStyle = "rgba(255,255,255,0.1)"; rr(ctx, lock.x, lock.y, lock.w, lock.h, 3); ctx.fill(); }
-    ctx.fillStyle = s.lock ? "#ff9d5c" : "rgba(150,130,175,0.5)";
-    ctx.font = `11px ${MONO}`;
-    ctx.fillText(s.lock ? "🔒" : "🔓", lock.x + lock.w / 2, ly + 15);
+    canvasIcon(ctx, s.lock ? "lock" : "unlock", lock.x + 4, ly + 4, 14, s.lock ? "#e6912c" : "rgba(154,162,155,0.6)");
     ed.buttons.push({ ...lock, fn: () => (s.lock = !s.lock) });
     // name — click to activate
-    ctx.fillStyle = active ? "#eaffff" : "#c9b8d8";
-    ctx.font = `bold 11px ${MONO}`;
+    ctx.fillStyle = active ? "#e4e1d3" : "#c9c8bc";
+    ctx.font = `600 11px ${MONO}`;
     ctx.textAlign = "left";
     ctx.fillText(LAYER_NAME[L], 74, ly + 15);
     ed.buttons.push({ x: 68, y: ly, w: 72, h: 22, fn: () => (ed.activeLayer = L) });
@@ -1816,7 +1832,7 @@ function drawSelectionContext(ctx, y0) {
   for (const [label, fn, on, acc] of chips) {
     const w = ctx.measureText(label).width + 16;
     if (cx2 + w > C.VIEW_W - 8) break; // never overflow the row
-    chip(ctx, cx2, cy, w, 22, label, !!on, fn, acc || "#8CF2FF");
+    chip(ctx, cx2, cy, w, 22, label, !!on, fn, acc || "#9fc7b8");
     cx2 += w + 5;
   }
 }
@@ -1868,29 +1884,29 @@ function drawSettingsPanel(ctx) {
   let rowN = 0; for (const [, rows] of groups) rowN += rows.length;
   const ph = 40 + groups.length * 20 + rowN * 24;
   let py = 38;
-  ctx.fillStyle = "rgba(9,6,15,0.96)";
-  rr(ctx, px, py, pw, ph, 8); ctx.fill();
-  ctx.strokeStyle = "rgba(201,154,255,0.4)";
-  ctx.lineWidth = 1.5;
-  rr(ctx, px, py, pw, ph, 8); ctx.stroke();
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#c99aff";
-  ctx.font = `bold 11px ${MONO}`;
-  ctx.fillText("LEVEL SETTINGS", px + pw / 2, py + 18);
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
+  ctx.fillStyle = "#1a211f";
+  rr(ctx, px, py, pw, ph, 6); ctx.fill();
+  ctx.restore();
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#e4e1d3";
+  ctx.font = `600 12px ${MONO}`;
+  ctx.fillText("Level settings", px + 12, py + 19);
   let ry = py + 30;
   for (const [title, rows] of groups) {
     ctx.textAlign = "left";
-    ctx.fillStyle = "rgba(160,140,190,0.7)";
-    ctx.font = `bold 9px ${MONO}`;
-    ctx.fillText(title, px + 12, ry + 10);
-    ctx.strokeStyle = "rgba(201,154,255,0.2)";
+    ctx.fillStyle = "rgba(154,162,155,0.9)";
+    ctx.font = `600 10px ${MONO}`;
+    ctx.fillText(sentence(title), px + 12, ry + 10);
+    ctx.strokeStyle = "#2e3935";
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(px + 12 + ctx.measureText(title).width + 8, ry + 7); ctx.lineTo(px + pw - 12, ry + 7); ctx.stroke();
     ry += 18;
     ctx.font = `bold 10px ${MONO}`;
     for (const [label, fn] of rows) {
       const lbl = label.length > 26 ? label.slice(0, 25) + "…" : label;
-      chip(ctx, px + 10, ry, pw - 20, 20, lbl, false, fn, "#c99aff");
+      chip(ctx, px + 10, ry, pw - 20, 20, lbl, false, fn);
       ry += 24;
     }
     ry += 2;
@@ -1901,18 +1917,15 @@ function drawSettingsPanel(ctx) {
 // legend. Toggle with the HELP chip or '?'; any click / Esc dismisses it.
 function drawHelpOverlay(ctx) {
   const W = C.VIEW_W, H = C.VIEW_H;
-  ctx.fillStyle = "rgba(6,4,12,0.82)";
+  ctx.fillStyle = "rgba(13,17,15,0.8)";
   ctx.fillRect(0, 0, W, H);
   const pw = 830, ph = 420, px = (W - pw) / 2, py = (H - ph) / 2;
-  ctx.fillStyle = "rgba(12,8,20,0.98)";
-  rr(ctx, px, py, pw, ph, 12); ctx.fill();
-  ctx.strokeStyle = "rgba(140,242,255,0.5)";
-  ctx.lineWidth = 2;
-  rr(ctx, px, py, pw, ph, 12); ctx.stroke();
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#8CF2FF";
-  ctx.font = `bold 20px ${MONO}`;
-  ctx.fillText("EDITOR — SHORTCUTS", W / 2, py + 34);
+  ctx.fillStyle = "#1a211f";
+  rr(ctx, px, py, pw, ph, 6); ctx.fill();
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#e4e1d3";
+  ctx.font = `800 30px Big Shoulders, Arial Narrow, sans-serif`;
+  ctx.fillText("Editor shortcuts", px + 30, py + 44);
   const cols = [
     ["BUILD", [
       "click palette — pick a tool",
@@ -1935,30 +1948,30 @@ function drawHelpOverlay(ctx) {
     ]],
     ["VIEW / FILE", [
       "wheel / Z — zoom · drag bg — pan",
-      "G — cycle snap · SNAP ▾ picker",
-      "ANNOT — hide editor labels",
+      "G — cycle snap · Snap picker",
+      "Labels — hide editor labels",
       "⌘Z — undo · ⇧⌘Z — redo",
-      "T / PLAY — playtest · Esc — back",
+      "T / Play — playtest · Esc — back",
       "S — save · ⇧S — save-as-new",
-      "IMPORT / EXPORT — JSON files",
+      "Import / Export — JSON files",
     ]],
   ];
   const colW = (pw - 60) / 3;
   for (let c = 0; c < cols.length; c++) {
     const cx = px + 30 + c * colW;
     ctx.textAlign = "left";
-    ctx.fillStyle = "#ffd166";
-    ctx.font = `bold 12px ${MONO}`;
-    ctx.fillText(cols[c][0], cx, py + 74);
-    ctx.font = `11px ${MONO}`;
-    ctx.fillStyle = "rgba(215,200,235,0.85)";
-    let yy = py + 96;
+    ctx.fillStyle = "#9fc7b8";
+    ctx.font = `600 12px ${MONO}`;
+    ctx.fillText(sentence(cols[c][0]), cx, py + 80);
+    ctx.font = `12px ${MONO}`;
+    ctx.fillStyle = "#c9c8bc";
+    let yy = py + 104;
     for (const line of cols[c][1]) { ctx.fillText(line, cx, yy); yy += 22; }
   }
   ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(160,140,190,0.8)";
-  ctx.font = `11px ${MONO}`;
-  ctx.fillText("click anywhere or press ? / Esc to close", W / 2, py + ph - 18);
+  ctx.fillStyle = "rgba(154,162,155,0.9)";
+  ctx.font = `12px ${MONO}`;
+  ctx.fillText("Click anywhere or press ? or Esc to close", W / 2, py + ph - 20);
   // a dismiss button spanning the overlay
   ed.buttons.push({ x: 0, y: 0, w: W, h: H, fn: () => (ed.helpOpen = false) });
 }

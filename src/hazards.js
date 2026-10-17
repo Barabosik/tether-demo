@@ -280,7 +280,7 @@ export function drawHazards(ctx, st, t) {
       ctx.shadowBlur = 0;
       // the tell: dash chevrons across the beam — "pass THROUGH me"
       ctx.fillStyle = `rgba(255,233,201,${0.35 + 0.2 * hum})`;
-      ctx.font = "bold 11px ui-monospace, Menlo, monospace";
+      ctx.font = "bold 11px Public Sans, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("» dash «", h.x + h.w / 2, h.y + h.h / 2 + 4);
       ctx.restore();

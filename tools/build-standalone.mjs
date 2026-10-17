@@ -26,7 +26,12 @@ const result = await build({
   write: false,
 });
 const js = result.outputFiles[0].text;
-const css = readFileSync("src/style.css", "utf8");
+// the self-hosted fonts ride along as data: URIs — the single file must
+// work offline, with no folder next to it
+const css = readFileSync("src/style.css", "utf8").replace(
+  /url\(\.\/fonts\/([\w-]+\.woff2)\)/g,
+  (_, f) => `url(data:font/woff2;base64,${readFileSync(`src/fonts/${f}`).toString("base64")})`,
+);
 
 const html = `<!doctype html>
 <html lang="en">

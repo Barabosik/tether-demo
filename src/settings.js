@@ -9,11 +9,11 @@ import { setVolumes } from "./audio.js";
  * with zero special cases. */
 
 export const SLIDERS = [ // [key, label] — menu order
-  ["master", "MASTER VOLUME"],
-  ["music", "MUSIC"],
-  ["sfx", "SFX"],
-  ["shake", "SCREEN SHAKE"],
-  ["flash", "IMPACT FLASH"],
+  ["master", "Master volume"],
+  ["music", "Music"],
+  ["sfx", "Sound effects"],
+  ["shake", "Screen shake"],
+  ["flash", "Impact flash"],
 ];
 
 export const SETTINGS = {
@@ -27,18 +27,18 @@ const SLIDER_DEFAULTS = { ...SETTINGS };
 const KEY_DEFAULTS = JSON.parse(JSON.stringify(KEYMAP));
 
 export const REBINDABLE = [ // [action, label] — menu order
-  ["jump", "JUMP / RELEASE"],
-  ["dash", "DASH"],
-  ["grapple", "GRAPPLE"],
-  ["attack", "ATTACK / POGO"],
-  ["left", "MOVE LEFT"],
-  ["right", "MOVE RIGHT"],
-  ["up", "UP / REEL IN"],
-  ["down", "DOWN / FAST-FALL"],
-  ["reset", "RESTART"],
-  ["practice", "PRACTICE FLAG"],
-  ["fullscreen", "FULLSCREEN"],
-  ["mute", "MUTE"],
+  ["jump", "Jump / release"],
+  ["dash", "Dash"],
+  ["grapple", "Grapple"],
+  ["attack", "Attack / pogo"],
+  ["left", "Move left"],
+  ["right", "Move right"],
+  ["up", "Up / reel in"],
+  ["down", "Down / fast-fall"],
+  ["reset", "Restart"],
+  ["practice", "Practice flag"],
+  ["fullscreen", "Fullscreen"],
+  ["mute", "Mute"],
 ];
 
 // menus need these to stay themselves; F2 is the profiler
@@ -106,12 +106,12 @@ export function resetKeys() {
 }
 
 const KEY_NAMES = {
-  Space: "SPACE", Enter: "ENTER", Escape: "ESC", Tab: "TAB",
-  ShiftLeft: "L-SHIFT", ShiftRight: "R-SHIFT",
-  ControlLeft: "L-CTRL", ControlRight: "R-CTRL",
-  AltLeft: "L-ALT", AltRight: "R-ALT",
+  Space: "Space", Enter: "Enter", Escape: "Esc", Tab: "Tab",
+  ShiftLeft: "L Shift", ShiftRight: "R Shift",
+  ControlLeft: "L Ctrl", ControlRight: "R Ctrl",
+  AltLeft: "L Alt", AltRight: "R Alt",
   ArrowLeft: "←", ArrowRight: "→", ArrowUp: "↑", ArrowDown: "↓",
-  Backspace: "BKSP", CapsLock: "CAPS", Backquote: "`",
+  Backspace: "Backspace", CapsLock: "Caps", Backquote: "`",
   Minus: "-", Equal: "=", BracketLeft: "[", BracketRight: "]",
   Semicolon: ";", Quote: "'", Backslash: "\\",
   Comma: ",", Period: ".", Slash: "/",
@@ -120,8 +120,8 @@ export function prettyKey(code) {
   if (KEY_NAMES[code]) return KEY_NAMES[code];
   if (/^Key[A-Z]$/.test(code)) return code.slice(3);
   if (/^Digit\d$/.test(code)) return code.slice(5);
-  if (/^Numpad/.test(code)) return "NUM-" + code.slice(6).toUpperCase();
+  if (/^Numpad/.test(code)) return "Num " + code.slice(6);
   return code.toUpperCase();
 }
 export const bindingLabel = (action) =>
-  (KEYMAP[action] || []).map(prettyKey).join(" / ") || "—";
+  (KEYMAP[action] || []).map(prettyKey).join(" / ") || "None";

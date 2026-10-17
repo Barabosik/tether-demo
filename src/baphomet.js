@@ -398,7 +398,7 @@ export function drawBaphometHud(ctx, st) {
   ctx.fillRect(x, y, w, 10);
   ctx.fillStyle = e.state === "stun" ? "#ffb454" : "#ff7a3d";
   ctx.fillRect(x, y, w * clamp(e.hp / e.maxHp, 0, 1), 10);
-  ctx.font = "bold 11px ui-monospace, Menlo, monospace";
+  ctx.font = "bold 11px Public Sans, system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.fillStyle = "#f2d0b8";
   ctx.fillText(`BAPHOMET — ${["", "I", "II", "III"][bossPhase(e)]}`, W / 2, y + 24);
