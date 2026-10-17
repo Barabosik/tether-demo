@@ -6,6 +6,7 @@ import {
 import { moveAndCollide, depenetrate } from "./physics.js";
 import { LEVELS, PROTECTED_IDS, makeDust, alignSpikes, isDeletable, deleteLevel, moveLevelInWorld, setOnlineLevels } from "./levels.js";
 import { WORLD_BG, initWorldBg, updateWorldBg, drawWorldBg } from "./worldbg.js";
+import { drawMenuBg } from "./menubg.js";
 import { loadCustomLevels, normalizeLevelData } from "./customLevels.js";
 import { addParticle, burst, ringFx, impact, updateParticles, drawParticles, bumpStyle } from "./fx.js";
 import {
@@ -38,6 +39,8 @@ import { drawWanderer, vesselPhase, VESSEL_CORE } from "./wanderer.js";
 import { drawReaperHud } from "./reaper.js";
 import * as RANK from "./rank.js";
 const { finalRank, effPar, sRankTimeOf, PALETTES, unlockedPalettes } = RANK;
+// ?clean in the URL hides diagnostics (fps meter) for trailer / screenshot capture
+const CLEAN_FRAME = typeof location !== "undefined" && /[?&]clean\b/.test(location.search);
 import { makeThumbs, invalidateThumbs } from "./ui.js";
 import { initSelectScreen } from "./selectScreen.js";
 import { initHud } from "./hud.js";
@@ -340,14 +343,14 @@ export function startGame(canvas) {
     const p = st.player;
     if (st.practice && len2(p.x - st.practice.x, p.y - st.practice.y) < 48) {
       st.practice = null; // planting on top of the flag picks it back up
-      st.toast = { text: "FLAG CLEARED — still a practice run (R for a real one)", t: 2.2 };
+      st.toast = { text: "Flag cleared. Still a practice run (R for a real one)", t: 2.2 };
       return;
     }
     st.practice = { x: p.x, y: p.y };
     st.practiceRun = true;
     sfx.confirm();
     ringFx(st, p.x + p.w / 2, p.y + p.h, "rgba(140,242,255,0.9)", 60, 0.35);
-    st.toast = { text: "PRACTICE FLAG — death returns here · run unranked", t: 2.4 };
+    st.toast = { text: "Practice flag. Death returns here, run unranked", t: 2.4 };
   }
 
   // ------------------------------------------------ THE LINE (marathon)
@@ -361,7 +364,7 @@ export function startGame(canvas) {
     if (!queue.length) return;
     st.line = { world: worldId, queue, at: 0, total: 0, deaths: 0, splits: [] };
     loadLevel(queue[0]);
-    st.toast = { text: `THE LINE — ${queue.length} LEVELS · ONE CLOCK`, t: 2.6 };
+    st.toast = { text: `The line. ${queue.length} levels, one clock`, t: 2.6 };
   }
   function lineAdvance() {
     const L = st.line;
@@ -373,7 +376,7 @@ export function startGame(canvas) {
     if (L.at < L.queue.length) {
       loadLevel(L.queue[L.at]);
       st.line = L; // loadLevel clears stale line-results state, not the run
-      st.toast = { text: `${L.at + 1}/${L.queue.length} — ${LEVELS[L.queue[L.at]].name}`, t: 2.2 };
+      st.toast = { text: `${L.at + 1}/${L.queue.length}  ${LEVELS[L.queue[L.at]].name}`, t: 2.2 };
       return;
     }
     st.line = null;
@@ -1481,8 +1484,14 @@ export function startGame(canvas) {
     const wbgLive = st.worldbg && st.screen !== "editor" && st.screen !== "select" &&
       st.screen !== "skins" && st.screen !== "secrets" && st.screen !== "settings" &&
       st.screen !== "intro" && st.screen !== "credits";
+    // menus float over the selected world's own art (menubg.js)
+    const menuBg = st.screen === "select" || st.screen === "skins" || st.screen === "secrets" ||
+      st.screen === "settings" || st.screen === "intro";
     if (wbgLive) {
       drawWorldBg(ctx, st, W, H, t);
+    } else if (menuBg && drawMenuBg(ctx, st.screen === "intro" ? 1 : (st.worldSel || 1), t, W, H,
+      st.screen === "intro" ? 0.3 : st.screen === "select" ? 0.5 : 0.72)) {
+      // drawn
     } else {
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
@@ -1529,14 +1538,19 @@ export function startGame(canvas) {
     // owns the whole frame)
     if (st.screen !== "editor" && st.screen !== "ending" && st.screen !== "intro" && st.screen !== "credits") {
       // on select the DOM account chip owns the top-right corner — duck under it
-      const fy = st.screen === "select" ? 56 : 24;
+      let fy = st.screen === "select" ? 56 : 24;
       ctx.textAlign = "right";
       ctx.font = "12px Public Sans, system-ui, sans-serif";
-      ctx.fillStyle = "rgba(154,162,155,0.75)";
-      ctx.fillText(`${Math.round(st.fps)} fps · sim ${C.PHYSICS_HZ} Hz`, W - 14, fy);
+      // the meter is an in-run diagnostic: menus stay clean, and ?clean
+      // drops it everywhere (trailer and screenshot capture)
+      if (st.screen === "playing" && !CLEAN_FRAME) {
+        ctx.fillStyle = "rgba(154,162,155,0.75)";
+        ctx.fillText(`${Math.round(st.fps)} fps · sim ${C.PHYSICS_HZ} Hz`, W - 14, fy);
+        fy += 16;
+      }
       if (isMuted()) {
         ctx.fillStyle = "rgba(228,225,211,0.7)";
-        ctx.fillText("Muted · M", W - 14, fy + 16);
+        ctx.fillText("Muted · M", W - 14, fy);
       }
     }
 
@@ -1656,7 +1670,8 @@ export function startGame(canvas) {
     }
 
     // platforms (kind-aware: static / crumble / mover / grip)
-    drawSolids(ctx, st, t);
+    const lvMeta = st.playtestData || LEVELS[st.levelIndex]; // ground takes its world's stone
+    drawSolids(ctx, st, t, lvMeta?.data?.bgWorld || lvMeta?.bgWorld || lvMeta?.worldId || lvMeta?.data?.worldId || 0);
 
     // spikes — shared painter (platforms.js); rotated + pulsing handled
     drawSpikes(ctx, st.spikes, st.simTime);

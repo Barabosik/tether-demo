@@ -38,48 +38,91 @@ import { drawNpcs, newNpcId } from "./npc.js";
 const GRID = 20; // base tile — snap steps are multiples of this
 const SNAP_MODES = [0, 0.5, 1, 2]; // ×GRID; 0 = off
 // ---- object palette: grouped by intent, each category with an accent color.
-// [label, glyph, one-line description] per tool; CATEGORIES lists membership.
+// [label, icon key, one-line description] per tool; CATEGORIES lists membership.
 // Redesign is presentation only — the tool KEYS and placeAt() are unchanged.
 const TOOL_META = {
-  select:  ["Select", "⌖", "Pick · move · resize · multi-select · box-select"],
-  plat:    ["Platform", "▬", "Solid ground you run and land on"],
-  crumble: ["Crumble", "▨", "Breaks a beat after you stand on it, then regrows"],
-  mover:   ["Mover", "⇄", "Platform patrolling a two-point rail"],
-  path:    ["Path Mover", "⋰", "Waypoint platform — select then EDIT PATH (P)"],
-  oneway:  ["One-way", "⤒", "Jump up through it, land on top"],
-  spike:   ["Spikes", "▲", "Hazard — rotate via handle; PULSE/PIN chips for variants"],
-  saw:     ["Saw Blade", "✹", "Spinning blade — orbits a center or rides a waypoint track"],
-  pendulum: ["Pendulum", "⟟", "Spiked head on a chain — arc, period and phase are yours"],
-  crusher: ["Crusher", "▣", "Telegraphs, slams along its angle, holds, retracts"],
-  laser:   ["Laser", "‖", "Constant beam — only a DASH passes through"],
-  anchor:  ["Anchor", "◎", "Grapple ring — swing from it"],
-  zip:     ["Zip Anchor", "⇢", "Grapple ring that SLIDES its rail while latched — AXIS/LEN/SPEED chips"],
-  sling:   ["Slingshot", "❂", "Rubber-band anchor — stretch away, release to LAUNCH"],
-  grip:    ["Grip Wall", "▤", "Cling on contact from any face; wall-jump off"],
-  node:    ["Strike Node", "◆", "Pogo/strike to redirect momentum + refresh dash"],
-  pad:     ["Bounce Pad", "⇧", "Angled launch along its arrow"],
-  grav:    ["Gravity Zone", "⤊", "Inverts gravity while you are inside it"],
-  wind:    ["Wind Zone", "≈", "Constant directional push (angle + force)"],
-  drone:   ["Drone", "◍", "Floating chaser"],
-  dart:    ["Dart", "➤", "Telegraphs, then lunges; dizzy after"],
-  ward:    ["Ward", "◈", "Mounted turret firing slow bolts"],
-  bloom:   ["Bloom", "✳", "Proximity mine that regrows"],
-  wisp:    ["Wisp", "❍", "Seeker that drifts THROUGH terrain; one hit kills it"],
-  keeper:  ["Boss", "♛", "Boss placeholder"],
-  reaper:  ["Reaper", "☠", "THE REAPER — cuts your rope; punish him exposed"],
-  coin:    ["Coin", "◇", "Collectible"],
-  gate:    ["Gate", "▯", "Door raised by a plate on the same link id"],
-  valve:   ["Valve", "⊳", "One-way door — pass one direction only"],
-  plate:   ["Plate", "▭", "Pressure plate; drives its linked gate"],
-  frag:    ["Marker", "◈", "Collectible marker — pick style (K) + edit text (⏎)"],
-  miner:   ["NPC", "⛏", "Talkable NPC marker; edit dialogue (⏎, ' | ' splits lines)"],
-  harm:    ["Note", "♪", "Marker — edit line (⏎)"],
-  secret:  ["Secret", "?", "Hidden trigger — fires 'SECRET FOUND'"],
-  exit:    ["Alt Exit", "⎋", "Secret alternate finish"],
-  split:   ["Split Gate", "⏱", "IL timing checkpoint — splits vs your PB pace"],
-  hint:    ["Text / Hint", "T", "Tutorial prompt the player reads (editable)"],
-  decor:   ["Decor", "❋", "Cosmetic dressing, no collision (V cycles type)"],
-  pot:     ["Clutter", "⌂", "Destructible pot / crate / shard"],
+  select:  ["Select", "select", "Pick, move, resize, multi-select, box-select"],
+  plat:    ["Platform", "plat", "Solid ground you run and land on"],
+  crumble: ["Crumble", "crumble", "Breaks a beat after you stand on it, then regrows"],
+  mover:   ["Mover", "mover", "Platform patrolling a two-point rail"],
+  path:    ["Path Mover", "path", "Waypoint platform. Select it, then Edit path (P)"],
+  oneway:  ["One-way", "oneway", "Jump up through it, land on top"],
+  spike:   ["Spikes", "spike", "Hazard. Rotate via the handle; Pulse and Pin chips for variants"],
+  saw:     ["Saw Blade", "saw", "Spinning blade. Orbits a center or rides a waypoint track"],
+  pendulum: ["Pendulum", "pendulum", "Spiked head on a chain. Arc, period and phase are yours"],
+  crusher: ["Crusher", "crusher", "Telegraphs, slams along its angle, holds, retracts"],
+  laser:   ["Laser", "laser", "Constant beam. Only a dash passes through"],
+  anchor:  ["Anchor", "anchor", "Grapple ring, swing from it"],
+  zip:     ["Zip Anchor", "zip", "Grapple ring that slides its rail while latched (Axis, Len, Speed chips)"],
+  sling:   ["Slingshot", "sling", "Rubber-band anchor. Stretch away, release to launch"],
+  grip:    ["Grip Wall", "grip", "Cling on contact from any face; wall-jump off"],
+  node:    ["Strike Node", "node", "Pogo or strike to redirect momentum and refresh dash"],
+  pad:     ["Bounce Pad", "pad", "Angled launch along its arrow"],
+  grav:    ["Gravity Zone", "grav", "Inverts gravity while you are inside it"],
+  wind:    ["Wind Zone", "wind", "Constant directional push (angle and force)"],
+  drone:   ["Drone", "drone", "Floating chaser"],
+  dart:    ["Dart", "dart", "Telegraphs, then lunges; dizzy after"],
+  ward:    ["Ward", "ward", "Mounted turret firing slow bolts"],
+  bloom:   ["Bloom", "bloom", "Proximity mine that regrows"],
+  wisp:    ["Wisp", "wisp", "Seeker that drifts through terrain; one hit kills it"],
+  keeper:  ["Boss", "keeper", "Boss placeholder"],
+  reaper:  ["Reaper", "reaper", "The Reaper. Cuts your rope; punish him while exposed"],
+  coin:    ["Coin", "coin", "Collectible"],
+  gate:    ["Gate", "gate", "Door raised by a plate on the same link id"],
+  valve:   ["Valve", "valve", "One-way door, passes one direction only"],
+  plate:   ["Plate", "plate", "Pressure plate; drives its linked gate"],
+  frag:    ["Marker", "frag", "Collectible marker. Pick a style (K), edit text (Enter)"],
+  miner:   ["NPC", "miner", "Talkable NPC marker. Edit dialogue (Enter); ' | ' splits lines"],
+  harm:    ["Note", "harm", "Marker. Edit its line (Enter)"],
+  secret:  ["Secret", "secret", "Hidden trigger, fires Secret found"],
+  exit:    ["Alt Exit", "exit", "Secret alternate finish"],
+  split:   ["Split Gate", "split", "Timing checkpoint. Splits against your best pace"],
+  hint:    ["Text / Hint", "hint", "Tutorial prompt the player reads (editable)"],
+  decor:   ["Decor", "decor", "Cosmetic dressing, no collision (V cycles type)"],
+  pot:     ["Clutter", "pot", "Destructible pot, crate or shard"],
+};
+// drawn palette icons (24-unit grid, one stroke), replacing the old unicode
+// glyphs, which rendered differently on every OS font
+const TOOL_ICON = {
+  select: "M6 4l12 7-5.5 1.5L10 18z",
+  plat: "M3 10h18v5H3z",
+  crumble: "M3 10h6.5l-1 5H3zM11.5 10h4l-1.5 5h-3.5zM17.5 10H21v5h-4.5z",
+  mover: "M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4",
+  path: "M4 19l5-7 5 3 6-9M4 19h.01M20 6h.01",
+  oneway: "M3 16h18M12 13V4M8 8l4-4 4 4",
+  spike: "M3 19l4.5-10L12 19l4.5-10L21 19z",
+  saw: "M12 3.5l2 3 3.5-.8-.6 3.5 3 1.8-3 1.8.6 3.5-3.5-.8-2 3-2-3-3.5.8.6-3.5-3-1.8 3-1.8-.6-3.5 3.5.8zM12 10.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z",
+  pendulum: "M8 3h8M12 3v10M12 13a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z",
+  crusher: "M5 3h14v9H5zM8 12v3M12 12v3M16 12v3M3 20h18",
+  laser: "M10.5 5v14M13.5 5v14M8 4h8M8 20h8",
+  anchor: "M12 5.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM12 9.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z",
+  zip: "M3 12h18M12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z",
+  sling: "M6 4v5a6 6 0 0 0 12 0V4M12 15v6",
+  grip: "M8 3v18M8 6h4M8 10.5h4M8 15h4M8 19.5h4",
+  node: "M12 3.5l6.5 8.5-6.5 8.5L5.5 12z",
+  pad: "M4 19.5h16M7 19.5l2-4h6l2 4M12 12V4M9 7l3-3 3 3",
+  grav: "M8 20V5M5 8l3-3 3 3M16 4v15M13 16l3 3 3-3",
+  wind: "M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3",
+  drone: "M12 5a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM9 12h6",
+  dart: "M4 12h10M4 8h4M4 16h4M14 7l6 5-6 5z",
+  ward: "M6 20h12M8 20v-6h8v6M12 14V7M12 7l6-2",
+  bloom: "M12 4v16M4 12h16M6.5 6.5l11 11M17.5 6.5l-11 11",
+  wisp: "M12 4c4 0 6 3 6 7v9l-2-2-2 2-2-2-2 2-2-2-2 2v-9c0-4 2-7 6-7zM10 10h.01M14 10h.01",
+  keeper: "M4 18h16M4 18L3 8l5 4 4-7 4 7 5-4-1 10z",
+  reaper: "M7 21L16 4M16 4C11 4 7 6 5 10c4-2 8-2.5 11-2.5",
+  coin: "M12 4.5l6 7.5-6 7.5L6 12z",
+  gate: "M6 21V5h12v16M4 21h16M10 9v8M14 9v8",
+  valve: "M4 4v16M20 4v16M8 12h8M12 8l4 4-4 4",
+  plate: "M3 18h18M6 18v-3h12v3",
+  frag: "M12 3l7 4v10l-7 4-7-4V7z",
+  miner: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20.5a7.5 7.5 0 0 1 15 0",
+  harm: "M9 17.5V6l10-2v11.5M9 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 15.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z",
+  secret: "M12 3.5l1.9 5.6 5.6 1.9-5.6 1.9L12 18.5l-1.9-5.6L4.5 11l5.6-1.9z",
+  exit: "M10 4H5v16h5M14 8l4 4-4 4M18 12H9",
+  split: "M12 8a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM12 11v3l2 1.5M10 3h4M12 3v2",
+  hint: "M5 7V4h14v3M12 4v16M9 20h6",
+  decor: "M5 19C5 10 11 5 19 5c0 8-5 14-14 14zM5 19l8-8",
+  pot: "M9 4h6M10 4v3c-3 1-4.5 3-4.5 6.5 0 4 3 6.5 6.5 6.5s6.5-2.5 6.5-6.5C18.5 10 17 8 14 7V4",
 };
 const CATEGORIES = [
   ["Terrain",   "#86bd5c", ["plat", "crumble", "mover", "path", "oneway"]],
@@ -182,7 +225,7 @@ export function editorOpen(levelIndex, opts = {}) {
   ed.zoom = 0.5; ed.camX = 0; ed.camY = Math.max(0, ed.data.world.h - C.VIEW_H / ed.zoom);
   ed.active = true;
   rebuild();
-  toast(levelIndex == null ? "new level — place things, S saves" : `editing ${ed.data.id}`);
+  toast(levelIndex == null ? "New level. Place things, S saves" : `editing ${ed.data.id}`);
   return ed;
 }
 
@@ -441,7 +484,7 @@ function placeAt(tool, wx, wy) {
     case "plat": push("solids", { x, y, w: 200, h: 40 }); break;
     case "crumble": push("solids", { kind: "crumble", x, y, w: 110, h: 22 }); break;
     case "mover": push("solids", { kind: "mover", x, y, w: 140, h: 22, x2: x + 200, y2: y, speed: 90 }); break;
-    case "path": // waypoint mover — select it and hit PATH✎ (P) to author the route
+    case "path": // waypoint mover — select it and hit Edit path (P) to author the route
       push("solids", { kind: "mover", x, y, w: 140, h: 22, speed: 90,
         path: [{ x, y }, { x: x + 200, y }], mode: "pingpong", easing: "linear" });
       break;
@@ -595,7 +638,7 @@ function promptForNewId() {
   const id = (typeof window !== "undefined" && window.prompt
     ? window.prompt("new level id (kebab-case):", d.id === "untitled" ? "my-level" : d.id + "-b")
     : d.id + "-b");
-  if (!id || !/^[a-z0-9-]+$/.test(id)) { toast("bad id — kebab-case only"); return false; }
+  if (!id || !/^[a-z0-9-]+$/.test(id)) { toast("Bad id, kebab-case only"); return false; }
   d.id = id;
   d.order = Math.max(...LEVELS.map((l) => l.data.order || 0), 0) + 1;
   d.name = (window.prompt?.("level name:", d.name) || d.name).toUpperCase();
@@ -633,7 +676,7 @@ async function saveLevel(asNew) {
       localStorage.setItem("tether.customLevels", JSON.stringify(customs));
     }
     ed.dirty = false;
-    toast(`saved locally (${d.id}) — export: Shift+E`);
+    toast(`Saved locally (${d.id}). Export: Shift+E`);
     finishSave();
     return true;
   } catch (e) {
@@ -732,7 +775,7 @@ function loadImported(raw) {
   const at = LEVELS.findIndex((l) => l.id === d.id);
   ed.levelIndex = at >= 0 ? at : null;
   rebuild();
-  toast(`imported ${d.id} — S saves it`);
+  toast(`Imported ${d.id}. S saves it`);
   return d;
 }
 
@@ -787,7 +830,7 @@ export function editorKeyDown(e) {
     if (ed.tool !== "select") { ed.tool = "select"; return true; }
     if (ed.sel.length) { ed.sel = []; return true; }
     if (ed.dirty && ed.escArm <= 0) {
-      ed.escArm = 2; toast("unsaved changes — Esc again discards, S saves");
+      ed.escArm = 2; toast("Unsaved changes. Esc again discards, S saves");
       return true;
     }
     ed.active = false;
@@ -930,7 +973,7 @@ function togglePathEdit() {
     rebuild();
   }
   ed.pathEdit = !ed.pathEdit;
-  toast(ed.pathEdit ? "PATH EDIT — click adds · drag moves · RMB deletes · P/Esc done" : "path saved");
+  toast(ed.pathEdit ? "Path edit: click adds · drag moves · RMB deletes · P or Esc done" : "Path saved");
 }
 
 export function editorWheel(e) {
@@ -1193,16 +1236,16 @@ export function editorDraw(ctx, t, dt) {
       enemies: p.enemies.filter(inLayer("enemies", L)), shots: [], rtime: t,
       props: p.props.filter(inLayer("props", L)) };
     drawDecorLayer(ctx, p.decor.filter(inLayer("decor", L)), 0, t, d.tint);
-    drawSolids(ctx, stLike, t);
+    drawSolids(ctx, stLike, t, d.bgWorld || d.worldId || 0);
     drawProps(ctx, stLike, t);
     if (ed.showAnnot) { // link labels — editor annotations, cyan + tagged
       ctx.fillStyle = ANNOT_COLOR;
       ctx.font = `${11 / ed.zoom}px Public Sans, system-ui, sans-serif`;
       ctx.textAlign = "left";
       for (const pr of stLike.props)
-        if (pr.kind === "plate") ctx.fillText("⚙" + (pr.link || "g1"), pr.x, pr.y - 12 / ed.zoom);
+        if (pr.kind === "plate") ctx.fillText("link " + (pr.link || "g1"), pr.x, pr.y - 12 / ed.zoom);
       for (const s2 of sol)
-        if (s2.kind === "gate") ctx.fillText("⚙" + (s2.link || "g1"), s2.x, s2.y - 6 / ed.zoom);
+        if (s2.kind === "gate") ctx.fillText("link " + (s2.link || "g1"), s2.x, s2.y - 6 / ed.zoom);
     }
 
     drawSpikes(ctx, p.spikes.filter(inLayer("spikes", L)));
@@ -1296,7 +1339,7 @@ export function editorDraw(ctx, t, dt) {
         ctx.font = `${11 / ed.zoom}px Public Sans, system-ui, sans-serif`;
         ctx.textAlign = "left";
         ctx.fillText("⌂ SPAWN", d.spawn.x - 6, d.spawn.y - 6 / ed.zoom);
-        ctx.fillText("★ GOAL", d.goal.x, d.goal.y - 6 / ed.zoom);
+        ctx.fillText("Goal", d.goal.x, d.goal.y - 6 / ed.zoom);
       }
     }
 
@@ -1427,13 +1470,16 @@ function chip(ctx, x, y, w, h, label, on, fn, accent = "#9fc7b8") {
 
 // a stroked 24-unit icon path (icons.js) drawn at x,y with size px
 function canvasIcon(ctx, name, x, y, size, color) {
+  canvasPath(ctx, ICON_PATHS[name], x, y, size, color);
+}
+function canvasPath(ctx, d, x, y, size, color) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(size / 24, size / 24);
   ctx.strokeStyle = color;
   ctx.lineWidth = 1.9;
   ctx.lineCap = "round"; ctx.lineJoin = "round";
-  ctx.stroke(new Path2D(ICON_PATHS[name]));
+  ctx.stroke(new Path2D(d));
   ctx.restore();
 }
 
@@ -1449,10 +1495,7 @@ function toolChipDraw(ctx, x, y, w, h, key, accent) {
     ctx.lineWidth = 1.5;
     rr(ctx, x + 0.75, y + 0.75, w - 1.5, h - 1.5, 3.5); ctx.stroke();
   }
-  ctx.fillStyle = on ? accent : hexA(accent, 0.85);
-  ctx.font = `bold 13px ${MONO}`;
-  ctx.textAlign = "center";
-  ctx.fillText(glyph, x + 13, y + h / 2 + 4.5);
+  canvasPath(ctx, TOOL_ICON[glyph], x + 6, y + h / 2 - 7, 14, on ? accent : hexA(accent, 0.85));
   ctx.fillStyle = on || hov ? "#e4e1d3" : "#c9c8bc";
   ctx.font = `11px ${MONO}`;
   ctx.textAlign = "left";
@@ -1463,7 +1506,7 @@ function toolChipDraw(ctx, x, y, w, h, key, accent) {
     ed.tool = key;
   } });
   ed.toolChips[key] = { x, y, w, h };
-  if (hov) ed.hoverTip = { x, y: y - 6, text: `${label} — ${desc}` };
+  if (hov) ed.hoverTip = { x, y: y - 6, text: `${label}: ${desc}` };
 }
 
 function drawToolbar(ctx, t) {
@@ -1521,7 +1564,7 @@ function drawToolbar(ctx, t) {
   chip(ctx, x, y0 + 5, 66, 20, "Select", ed.tool === "select", () => (ed.tool = "select"));
   ed.toolChips.select = { x, y: y0 + 5, w: 66, h: 20 };
   if (ed.mx >= x && ed.mx <= x + 66 && ed.my >= y0 + 5 && ed.my <= y0 + 25)
-    ed.hoverTip = { x, y: y0 - 1, text: `Select — ${TOOL_META.select[2]}` };
+    ed.hoverTip = { x, y: y0 - 1, text: `Select: ${TOOL_META.select[2]}` };
   x += 72;
   ctx.fillStyle = "#2e3935";
   ctx.fillRect(x - 4, y0 + 6, 1, 18); // divider
@@ -1797,19 +1840,19 @@ function drawSelectionContext(ctx, y0) {
       chips.push([`DIR: ${(r.dir || 1) > 0 ? "→" : "←"} (L)`, () => { pushUndo(); r.dir = -(r.dir || 1); rebuild(); }]);
     if (one.arr === "hints") {
       const short = (r.text || "").length > 14 ? r.text.slice(0, 13) + "…" : r.text;
-      chips.push([`TEXT ✎ "${short}" (⏎)`, () => openTextEdit(one)]);
+      chips.push([`Text "${short}" (Enter)`, () => openTextEdit(one)]);
       chips.push([`${r.big ? "BIG" : "small"} (B)`, () => { pushUndo(); r.big = r.big ? 0 : 1; rebuild(); }]);
     }
     if (one.arr === "fragments") {
       const short = (r.text || "").length > 14 ? r.text.slice(0, 13) + "…" : r.text;
-      chips.push([`LORE ✎ "${short}" (⏎)`, () => openTextEdit(one)]);
+      chips.push([`Lore "${short}" (Enter)`, () => openTextEdit(one)]);
       chips.push([`SKIN: ${r.skin || "butterfly"} (K)`, () => {
         pushUndo(); r.skin = FRAG_SKINS[(FRAG_SKINS.indexOf(r.skin) + 1) % FRAG_SKINS.length]; rebuild();
       }]);
     }
     if (one.arr === "npcs") {
       const short = (r.text || "").length > 14 ? r.text.slice(0, 13) + "…" : r.text;
-      chips.push([`DIALOGUE ✎ "${short}" (⏎)`, () => openTextEdit(one)]);
+      chips.push([`Dialogue "${short}" (Enter)`, () => openTextEdit(one)]);
       chips.push([`KIND: ${r.kind || "miner"} (K)`, () => { pushUndo(); r.kind = r.kind === "harmonica" ? "miner" : "harmonica"; rebuild(); }]);
     }
     if (one.arr === "decor") {
@@ -1919,41 +1962,45 @@ function drawHelpOverlay(ctx) {
   const W = C.VIEW_W, H = C.VIEW_H;
   ctx.fillStyle = "rgba(13,17,15,0.8)";
   ctx.fillRect(0, 0, W, H);
-  const pw = 830, ph = 420, px = (W - pw) / 2, py = (H - ph) / 2;
+  const pw = 830, ph = 400, px = (W - pw) / 2, py = (H - ph) / 2;
   ctx.fillStyle = "#1a211f";
   rr(ctx, px, py, pw, ph, 6); ctx.fill();
   ctx.textAlign = "left";
   ctx.fillStyle = "#e4e1d3";
   ctx.font = `800 30px Big Shoulders, Arial Narrow, sans-serif`;
   ctx.fillText("Editor shortcuts", px + 30, py + 44);
+  // [keys, action] rows: keys draw as caps, the action in body text
   const cols = [
-    ["BUILD", [
-      "click palette — pick a tool",
-      "click canvas — stamp it",
-      "drag — move · corners — resize",
-      "⇧click / drag box — multi-select",
-      "R — rotate 90° · handle: free angle",
-      "⌘C / ⌘V — copy / paste",
-      "⌘D — duplicate · X — delete",
-      "P — edit mover path",
+    ["Build", [
+      ["Click palette", "pick a tool"],
+      ["Click canvas", "stamp it"],
+      ["Drag", "move; corners resize"],
+      ["Shift click", "multi-select"],
+      ["R", "rotate 90\u00b0"],
+      ["Ctrl C / V", "copy, paste"],
+      ["Ctrl D", "duplicate"],
+      ["X", "delete"],
+      ["P", "edit mover path"],
     ]],
-    ["OBJECT", [
-      "⏎ — edit hint text (inline)",
-      "B — hint big / small",
-      "V — decor type · F — layer",
-      "[ ] — decor scale",
-      "D — spike deep-fill",
-      "L — gate link · valve flip",
-      "1/2/3 — layer (⇧ assign)",
+    ["Object", [
+      ["Enter", "edit hint text"],
+      ["B", "hint big or small"],
+      ["V", "decor type"],
+      ["F", "layer"],
+      ["[ ]", "decor scale"],
+      ["D", "spike deep-fill"],
+      ["L", "gate link, valve flip"],
+      ["1 2 3", "layer (Shift assigns)"],
     ]],
-    ["VIEW / FILE", [
-      "wheel / Z — zoom · drag bg — pan",
-      "G — cycle snap · Snap picker",
-      "Labels — hide editor labels",
-      "⌘Z — undo · ⇧⌘Z — redo",
-      "T / Play — playtest · Esc — back",
-      "S — save · ⇧S — save-as-new",
-      "Import / Export — JSON files",
+    ["View and file", [
+      ["Wheel / Z", "zoom; drag to pan"],
+      ["G", "cycle snap"],
+      ["Ctrl Z", "undo"],
+      ["Ctrl Shift Z", "redo"],
+      ["T", "playtest"],
+      ["S", "save"],
+      ["Shift S", "save as new"],
+      ["Esc", "back"],
     ]],
   ];
   const colW = (pw - 60) / 3;
@@ -1962,11 +2009,20 @@ function drawHelpOverlay(ctx) {
     ctx.textAlign = "left";
     ctx.fillStyle = "#9fc7b8";
     ctx.font = `600 12px ${MONO}`;
-    ctx.fillText(sentence(cols[c][0]), cx, py + 80);
-    ctx.font = `12px ${MONO}`;
-    ctx.fillStyle = "#c9c8bc";
-    let yy = py + 104;
-    for (const line of cols[c][1]) { ctx.fillText(line, cx, yy); yy += 22; }
+    ctx.fillText(cols[c][0], cx, py + 80);
+    let yy = py + 106;
+    for (const [keys, action] of cols[c][1]) {
+      ctx.font = `600 11px ${MONO}`;
+      const kw = ctx.measureText(keys).width + 12;
+      ctx.fillStyle = "#2c3733";
+      rr(ctx, cx, yy - 13, kw, 18, 3); ctx.fill();
+      ctx.fillStyle = "#e4e1d3";
+      ctx.fillText(keys, cx + 6, yy);
+      ctx.font = `12px ${MONO}`;
+      ctx.fillStyle = "#c9c8bc";
+      ctx.fillText(action, cx + kw + 8, yy);
+      yy += 26;
+    }
   }
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(154,162,155,0.9)";

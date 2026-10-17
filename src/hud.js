@@ -63,7 +63,18 @@ function build() {
   timeRow.appendChild(time);
   timeRow.appendChild(els.starget = el("span", "hud-starget"));
   root.appendChild(timeRow);
-  root.appendChild(els.stats = el("div", "hud-stats"));
+  // falls / kills / coins as an icon cluster, read at a glance
+  els.stats = el("div", "hud-stats");
+  const stat = (name, cls, fill) => {
+    const s = el("span", "hud-stat " + cls);
+    s.append(icon(name, { fill }), els[cls] = el("span", "hud-stat-v"));
+    els.stats.appendChild(s);
+    return s;
+  };
+  stat("fall", "falls");
+  stat("swords", "kills");
+  els.coinStat = stat("diamond", "coins", true);
+  root.appendChild(els.stats);
 
   const dash = el("div", "hud-dash");
   dash.appendChild(el("span", "hud-dash-label", "Dash"));
@@ -106,9 +117,11 @@ function sync() {
   gate("starget", `S ≤ ${fmtTime(sT)}`, (v) => { els.starget.textContent = v; });
   gate("son", st.runTime <= sT, (on) => { els.starget.classList.toggle("off", !on); });
 
-  gate("stats", `Falls ${st.deaths} · kills ${st.kills}` +
-    (st.coins.length ? ` · coins ${st.coinCount}/${st.coins.length}` : ""), (v) => {
-    els.stats.textContent = v;
+  gate("falls", st.deaths, (v) => { els.falls.textContent = String(v); });
+  gate("kills", st.kills, (v) => { els.kills.textContent = String(v); });
+  gate("coins", st.coins.length ? `${st.coinCount}/${st.coins.length}` : "", (v) => {
+    els.coins.textContent = v;
+    els.coinStat.style.display = v ? "" : "none";
   });
 
   // dash gauge — the skin's colors; fill is compositor-only (scaleX)

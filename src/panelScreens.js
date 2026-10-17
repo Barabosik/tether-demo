@@ -142,6 +142,14 @@ function buildPause() {
   const r = pause.root;
   r.replaceChildren();
   r.appendChild(el("div", "pan-title", "Paused"));
+  // where you are and how long you've been at it — the run's context
+  const L = LEVELS[state.levelIndex];
+  if (L) {
+    const ctx = el("div", "pan-context");
+    ctx.append(el("span", "pan-ctx-num", String(state.levelIndex + 1)),
+      el("span", null, displayName(L.name)), el("span", "pan-ctx-time", fmtTime(state.runTime || 0)));
+    r.appendChild(ctx);
+  }
   const list = el("div", "pan-list");
   const onOff = (on) => el("span", "pan-state", on ? "on" : "off");
   list.append(

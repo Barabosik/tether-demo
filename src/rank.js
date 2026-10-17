@@ -54,7 +54,7 @@ export function finalRank(time, par, hits) {
 export function speedThresholds(par) {
   const p = par || 120;
   const f = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
-  return [`S <=${f(p * 0.75)}`, `A <=${f(p)}`, `B <=${f(p * 1.5)}`, `C slower`];
+  return [`S ≤ ${f(p * 0.75)}`, `A ≤ ${f(p)}`, `B ≤ ${f(p * 1.5)}`, `C slower`];
 }
 export const CLEAN_THRESHOLDS = ["S no hits", "A 1 hit", "B 2 hits", "C 3+"];
 

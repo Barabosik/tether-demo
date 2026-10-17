@@ -290,7 +290,7 @@ export function checkGrip(st, dt, leftHeld, rightHeld) {
 
 // ------------------------------------------------------------------ render
 // replaces the flat solids loop — statics draw exactly as before
-export function drawSolids(ctx, st, t) {
+export function drawSolids(ctx, st, t, world = 0) {
   for (const s of st.solids) {
     if (s.brittle) {
       // = a broken floor, not a cycle). Intact: corruption-veined terrain
@@ -567,12 +567,54 @@ export function drawSolids(ctx, st, t) {
       ctx.fillStyle = "rgba(106,176,255,0.2)"; rr(ctx, s.x, s.y, s.w, 4, 2); ctx.fill();
       ctx.restore();
     } else {
-      ctx.fillStyle = "#262033"; rr(ctx, s.x, s.y, s.w, s.h, 6); ctx.fill();
-      ctx.fillStyle = "#5b4358"; rr(ctx, s.x, s.y, s.w, 5, 3); ctx.fill();
-      ctx.fillStyle = "rgba(255,255,255,0.045)";
-      rr(ctx, s.x + 4, s.y + 6, s.w - 8, Math.min(s.h - 8, 10), 3); ctx.fill();
+      drawRock(ctx, s, SOLID_PAL[world] || SOLID_PAL.legacy);
     }
   }
+}
+
+// ---- plain ground, per world. Rock that belongs to the backdrop it sits
+// in: a body that darkens with depth, a lit top lip with a thin catch-light
+// (the light comes from above, like the parallax art), faint strata so big
+// masses read as stone instead of flat slabs. Presentation only — the
+// collision box is the solid's rect, untouched.
+const SOLID_PAL = {
+  1: { top: "#2a3846", base: "#101922", lip: "#62798d", hi: "rgba(196,222,240,0.42)", strata: "rgba(150,190,220,0.06)" },
+  2: { top: "#38332c", base: "#151417", lip: "#85704f", hi: "rgba(245,220,170,0.38)", strata: "rgba(230,200,150,0.06)" },
+  3: { top: "#3d2322", base: "#160b0d", lip: "#8f4a35", hi: "rgba(255,176,128,0.4)", strata: "rgba(255,150,110,0.06)" },
+  legacy: { top: "#2c2539", base: "#1d1828", lip: "#5b4358", hi: "rgba(255,255,255,0.16)", strata: "rgba(255,255,255,0.035)" },
+};
+SOLID_PAL[41] = SOLID_PAL[1]; // the corrupted remixes keep their parent's stone
+SOLID_PAL[42] = SOLID_PAL[2];
+
+function drawRock(ctx, s, P) {
+  const depth = Math.min(s.h, 220);
+  const g = ctx.createLinearGradient(0, s.y, 0, s.y + depth);
+  g.addColorStop(0, P.top);
+  g.addColorStop(1, P.base);
+  ctx.fillStyle = g;
+  rr(ctx, s.x, s.y, s.w, s.h, 6); ctx.fill();
+  // strata: short broken seams at stable pseudo-random offsets
+  if (s.h > 40 && s.w > 40) {
+    ctx.strokeStyle = P.strata;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let y = s.y + 26, row = 0; y < s.y + s.h - 10; y += 30, row++) {
+      const seed = (Math.floor(s.x) * 73 + row * 151) % 97;
+      for (let x = s.x + 10 + (seed % 40); x < s.x + s.w - 20; x += 70 + (seed % 23)) {
+        const len = Math.min(26 + ((x * 31 + row * 17) % 30), s.x + s.w - 10 - x);
+        if (len > 6) { ctx.moveTo(x, y); ctx.lineTo(x + len, y); }
+      }
+    }
+    ctx.stroke();
+  }
+  // the lit lip + its catch-light
+  ctx.fillStyle = P.lip;
+  rr(ctx, s.x, s.y, s.w, 5, 3); ctx.fill();
+  ctx.fillStyle = P.hi;
+  ctx.fillRect(s.x + 4, s.y + 0.5, Math.max(0, s.w - 8), 1.5);
+  // a soft under-lip shade seats the lip on the body
+  ctx.fillStyle = "rgba(0,0,0,0.18)";
+  ctx.fillRect(s.x + 2, s.y + 5, Math.max(0, s.w - 4), 3);
 }
 
 // ---- gravity-flip + wind volumes: VISIBLE play-space (secret triggers stay

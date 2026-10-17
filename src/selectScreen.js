@@ -359,9 +359,8 @@ function buildHints() {
   hintsEl.replaceChildren();
   const line = (cls, src) => { const d = el("div", "sel-hint " + cls); d.appendChild(hintLine(src)); return d; };
   hintsEl.append(
-    line("hint-1", "[Arrows] choose  [Enter] or click to play  [Tab] world  [B] flip to the B-side"),
-    line("hint-2", "[RMB] [E] grapple  [Space] release or jump  [Shift] dash  [LMB] [J] attack  aim down and attack to pogo  [G] ghost"),
-    line("hint-3", "[Esc] pause  [R] restart  [F] fullscreen  [M] sound  [O] settings  [E] edit  [N] new level  [Del] delete custom"),
+    line("hint-1", "[RMB] grapple  [Space] jump  [Shift] dash  [LMB] attack  [Esc] pause  [R] restart"),
+    line("hint-2", "[Enter] play  [Tab] world  [B] B-side  [E] edit  [N] new level  [Del] delete custom"),
   );
 }
 
