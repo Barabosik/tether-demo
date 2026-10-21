@@ -7,7 +7,7 @@ Shallows**, **The Mines**, and **The Inferno** — each capped by a boss.
 This is the **public demo**. It's the first three worlds of a larger game,
 opened up because I want honest feedback on the **level design** (see below).
 
-> ⚡ **Play now:** [barabosik.github.io/tether-demo](https://barabosik.github.io/tether-demo)
+> ⚡ **Play now:** [nikita-andreiev.com/tether-demo](https://nikita-andreiev.com/tether-demo/)
 > *(or download [`TETHER.html`](TETHER.html) and double-click it — no install, works offline)*
 
 ---
